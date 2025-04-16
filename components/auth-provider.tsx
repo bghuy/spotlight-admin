@@ -22,6 +22,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       clientId={process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID || ""}
       authorizationParams={{
         redirect_uri: typeof window !== "undefined" ? window.location.origin + "/callback" : "/callback",
+        audience: "spotlight",
+        scope: "openid profile email",
       }}
     >
       {children}

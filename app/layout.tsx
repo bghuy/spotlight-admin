@@ -25,7 +25,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <Provider store={store}>
           <AuthProvider>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+            <ThemeProvider attribute="class"  forcedTheme="light"  defaultTheme="light" enableSystem={false} disableTransitionOnChange>
               {children}
             </ThemeProvider>
           </AuthProvider>

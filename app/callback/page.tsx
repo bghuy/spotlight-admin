@@ -23,9 +23,10 @@ export default function Callback() {
         try {
           // Get the access token
           const accessToken = await getAccessTokenSilently()
-
+          console.log(accessToken,"accessToken")
           // Get token claims to extract expiration
           const claims = await getIdTokenClaims()
+          console.log(claims,"claims")
           dispatch(setUser(claims))
           const expiresAt = claims?.exp ? new Date(claims.exp * 1000) : new Date(Date.now() + 7200 * 1000) // Default 2 hours
 

@@ -7,13 +7,16 @@ import { StatsCards } from "@/components/dashboard/analytics/stats-cards"
 import { AnalyticsCharts } from "@/components/dashboard/analytics/analytics-charts"
 import { Button } from "@/components/ui/button"
 import { Loader2, RefreshCw } from "lucide-react"
+import axiosInstance from "@/constants/axios-instance"
+import { useAppDispatch } from "@/lib/store/hooks"
+import { setUser } from "@/lib/store/user-slice"
 
 export default function DashboardPage() {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
-
+  const dispatch = useAppDispatch()
 
   const fetchData = async () => {
     try {
@@ -39,6 +42,7 @@ export default function DashboardPage() {
       setError("An unexpected error occurred. Please try again.")
     })
   }, [retryCount])
+
 
   const handleRetry = () => {
     setRetryCount((prev) => prev + 1)
@@ -74,6 +78,7 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-2xl font-bold tracking-tight">Analytics Dashboard</h1>
+      {/* <Button onClick={fetchUser}>fetch user</Button> */}
       <StatsCards data={data} />
       <AnalyticsCharts data={data} />
     </div>

@@ -9,6 +9,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { useRouter } from "next/navigation";
 import { useAppDispatch } from "@/lib/store/hooks";
 import { setUser } from "@/lib/store/user-slice";
+import axiosInstance from "@/constants/axios-instance";
 
 // Sử dụng dynamic import để tránh lỗi hydration
 const MusicPlayer = dynamic(() => import("@/components/music-player").then((mod) => mod.MusicPlayer), {
@@ -20,37 +21,67 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { isLoading, isAuthenticated, getIdTokenClaims, user } = useAuth0();
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { logout: auth0Logout } = useAuth0();
 
+  const fetchUser = async () => {
+    try {
+      const userData = await axiosInstance.get("/api/v1/auth/session-user")
+      return userData.data
+    } catch (error) {
+      console.error("Error fetching user:", error)
+    }
+
+  }
   // Đảm bảo chỉ render ở phía client
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // Lấy claims khi đã xác thực
-  useEffect(() => {
-    async function fetchClaims() {
-      // console.log("Checking auth state - isLoading:", isLoading, "isAuthenticated:", isAuthenticated, "user:", user);
-      if (!isLoading && isAuthenticated) {
-        try {
-          const claims = await getIdTokenClaims();
-          // console.log("Claims:", claims);
-          if (claims) {
-            dispatch(setUser(claims)); // Lưu claims vào Redux
-          } else {
-            console.error("No claims received");
-          }
-        } catch (error) {
-          console.error("Error fetching claims:", error);
-          router.push("/login?error=failed_to_fetch_claims");
-        }
-      } else if (!isLoading && !isAuthenticated) {
-        console.log("Not authenticated, redirecting to login");
-        router.push("/login");
-      }
-    }
+  useEffect(()=>{
+    const controller = new AbortController();
+    fetchUser().then((user)=>{
+      // if(user.role !== "admin"){
+      //   auth0Logout({
+      //     logoutParams: {
+      //       returnTo: window.location.origin,
+      //     },
+      //   });
+      // }
+      dispatch(setUser(user))
+    }).catch((error)=>{
+      console.error("Error fetching user:", error)
+      router.push("/login")
+    })
+    return () => {
+      controller.abort(); // 🧼 cleanup: huỷ request nếu unmount
+    };
+  },[])
 
-    fetchClaims();
-  }, [isLoading, isAuthenticated, getIdTokenClaims, user, dispatch, router]);
+  // Lấy claims khi đã xác thực
+  // useEffect(() => {
+  //   async function fetchClaims() {
+  //     // console.log("Checking auth state - isLoading:", isLoading, "isAuthenticated:", isAuthenticated, "user:", user);
+  //     if (!isLoading && isAuthenticated) {
+  //       try {
+  //         const claims = await getIdTokenClaims();
+  //         // console.log("Claims:", claims);
+  //         if (claims) {
+  //           dispatch(setUser(claims)); // Lưu claims vào Redux
+  //         } else {
+  //           console.error("No claims received");
+  //         }
+  //       } catch (error) {
+  //         console.error("Error fetching claims:", error);
+  //         router.push("/login?error=failed_to_fetch_claims");
+  //       }
+  //     } else if (!isLoading && !isAuthenticated) {
+  //       console.log("Not authenticated, redirecting to login");
+  //       router.push("/login");
+  //     }
+  //   }
+
+  //   fetchClaims();
+  // }, [isLoading, isAuthenticated, getIdTokenClaims, user, dispatch, router]);
 
   if (!isClient || isLoading) {
     return (
@@ -60,20 +91,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
     );
   }
-
-  return (
-    <div className="flex min-h-screen">
-      <DashboardNav />
-      <div className="flex-1 flex flex-col">
-        <header className="sticky top-0 z-40 border-b bg-background">
-          <div className="flex h-16 items-center justify-between px-6">
-            <h1 className="text-xl font-bold">Music Admin</h1>
-            <UserNav />
-          </div>
-        </header>
-        <main className="flex-1 p-6">{children}</main>
-        <MusicPlayer />
+  else {
+    return (
+      <div className="flex min-h-screen">
+        <DashboardNav />
+        <div className="flex-1 flex flex-col">
+          <header className="sticky top-0 z-40 border-b bg-background">
+            <div className="flex h-16 items-center justify-between px-6">
+              <h1 className="text-xl font-bold ml-10 md:ml-0">Music Admin</h1>
+              <UserNav />
+            </div>
+          </header>
+          <main className="flex-1 p-6">{children}</main>
+          <MusicPlayer />
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
+
 }

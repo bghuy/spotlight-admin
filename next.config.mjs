@@ -22,6 +22,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  reactStrictMode: false,
   experimental: {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,

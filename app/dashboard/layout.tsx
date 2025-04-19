@@ -10,6 +10,9 @@ import { useRouter } from "next/navigation";
 import { useAppDispatch } from "@/lib/store/hooks";
 import { setUser } from "@/lib/store/user-slice";
 import axiosInstance from "@/constants/axios-instance";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store/store";
+import { Toaster } from "@/components/ui/toaster";
 
 // Sử dụng dynamic import để tránh lỗi hydration
 const MusicPlayer = dynamic(() => import("@/components/music-player").then((mod) => mod.MusicPlayer), {
@@ -22,7 +25,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { logout: auth0Logout } = useAuth0();
-
+  const {isVisible} = useSelector((state: RootState) => state.musicPlayer);
   const fetchUser = async () => {
     try {
       const userData = await axiosInstance.get("/api/v1/auth/session-user")
@@ -102,7 +105,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <UserNav />
             </div>
           </header>
-          <main className="flex-1 p-6">{children}</main>
+          <main className={`flex-1 p-6 ${isVisible ? 'mb-[96px]': '' } `}>{children}</main>
+          <Toaster/>
           <MusicPlayer />
         </div>
       </div>

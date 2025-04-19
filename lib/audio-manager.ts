@@ -136,25 +136,30 @@ export class AudioManager {
     }
   }
 
+  // Cập nhật phương thức loadSong để xử lý lỗi tốt hơn
   public async loadSong(url: string): Promise<void> {
     if (!url) {
+      console.error("AudioManager: No URL provided")
       this.onErrorCallbacks.forEach((callback) => callback("No audio URL provided"))
       return Promise.reject(new Error("No audio URL provided"))
     }
 
+    console.log("AudioManager: Starting to load song URL:", url)
+
     // Nếu đang reset, đợi cho đến khi hoàn thành
     if (this.resetInProgress) {
+      console.log("AudioManager: Reset in progress, waiting...")
       await new Promise((resolve) => setTimeout(resolve, 300))
     }
 
     // Nếu đang tải, hãy đợi
     if (this.isLoading) {
-      console.log("Already loading, waiting...")
+      console.log("AudioManager: Already loading, waiting...")
       if (this.loadPromise) {
         try {
           await this.loadPromise
         } catch (error) {
-          console.error("Error waiting for previous load:", error)
+          console.error("AudioManager: Error waiting for previous load:", error)
         }
       }
     }
@@ -162,7 +167,7 @@ export class AudioManager {
     // Nếu URL giống nhau và đã tải, không cần tải lại
     // Nhưng nếu audio đã bị dừng hoặc reset, vẫn cần tải lại
     if (url === this.currentSongUrl && this.audio.readyState > 1 && this.audio.src && !this.resetInProgress) {
-      console.log("Same URL, already loaded")
+      console.log("AudioManager: Same URL, already loaded")
       return Promise.resolve()
     }
 
@@ -179,17 +184,38 @@ export class AudioManager {
 
         // Xóa tất cả các sự kiện cũ
         const onCanPlay = () => {
-          console.log("Audio can play through")
+          console.log("AudioManager: Audio can play through")
           this.isLoading = false
           resolve()
           this.audio.removeEventListener("canplaythrough", onCanPlay)
           this.audio.removeEventListener("error", onError)
         }
 
-        const onError = () => {
-          console.log("Audio loading error")
+        const onError = (e: Event) => {
+          console.error("AudioManager: Audio loading error", e, this.audio.error)
           this.isLoading = false
-          reject(new Error("Failed to load audio"))
+
+          let errorMessage = "Failed to load audio"
+          if (this.audio.error) {
+            switch (this.audio.error.code) {
+              case 1:
+                errorMessage = "Audio loading aborted."
+                break
+              case 2:
+                errorMessage = "Network error while loading audio. The audio file might be blocked by CORS policy."
+                break
+              case 3:
+                errorMessage = "Audio decoding failed. Format may not be supported."
+                break
+              case 4:
+                errorMessage = "Audio source not found or access denied."
+                break
+              default:
+                errorMessage = `Error loading audio: ${this.audio.error.message || "Unknown error"}`
+            }
+          }
+
+          reject(new Error(errorMessage))
           this.audio.removeEventListener("canplaythrough", onCanPlay)
           this.audio.removeEventListener("error", onError)
         }
@@ -199,6 +225,7 @@ export class AudioManager {
         this.audio.addEventListener("error", onError, { once: true })
 
         // Set new source and load
+        console.log("AudioManager: Setting audio source to:", url)
         this.audio.src = url
         this.audio.load()
       })
@@ -206,7 +233,7 @@ export class AudioManager {
       return this.loadPromise
     } catch (error) {
       this.isLoading = false
-      console.error("Error setting audio source:", error)
+      console.error("AudioManager: Error setting audio source:", error)
       this.onErrorCallbacks.forEach((callback) =>
         callback(`Failed to load audio: ${error instanceof Error ? error.message : String(error)}`),
       )

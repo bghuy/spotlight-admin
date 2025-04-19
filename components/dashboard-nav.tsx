@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { BarChart3, Users, Music, UserCheck, Settings, Menu, X } from "lucide-react"
+import { BarChart3, Users, Music, UserCheck, Settings, Menu, X, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 
@@ -22,6 +22,11 @@ const navItems = [
     title: "Song Reviews",
     href: "/dashboard/song-reviews",
     icon: Music,
+  },
+  {
+    title: "Upload Song",
+    href: "/dashboard/upload-song",
+    icon: Upload,
   },
   {
     title: "User Management",

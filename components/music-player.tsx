@@ -32,6 +32,9 @@ export function MusicPlayer() {
   // Get the singleton audio manager
   const audioManager = useRef(AudioManager.getInstance())
 
+  // Check if this is a review song (temporary song from upload form)
+  const isReviewSong = currentSong?.id?.toString().startsWith("temp-") || false
+
   // Theo dõi sự thay đổi của isVisible để xử lý khi đóng/mở player
   useEffect(() => {
     // Khi isVisible thay đổi từ true sang false (đóng player)
@@ -110,6 +113,11 @@ export function MusicPlayer() {
   // Handle song changes
   useEffect(() => {
     if (!currentSong || !currentSong.audioUrl || !isVisible) {
+      console.log("MusicPlayer: Not loading song because:", {
+        hasSong: !!currentSong,
+        hasAudioUrl: !!currentSong?.audioUrl,
+        isVisible,
+      })
       return
     }
 
@@ -123,8 +131,8 @@ export function MusicPlayer() {
         setIsLoading(true)
 
         // Load the new song
-        console.log("Loading song:", currentSong.title, "URL:", currentSong.audioUrl)
-        await manager.loadSong(currentSong.audioUrl)
+        console.log("MusicPlayer: Loading song:", currentSong.title, "URL:", currentSong.audioUrl)
+        await manager.loadSong(currentSong.audioUrl || "")
 
         if (!isMounted) return
 
@@ -136,6 +144,7 @@ export function MusicPlayer() {
 
         // Auto-play if needed
         if (isPlaying) {
+          console.log("MusicPlayer: Auto-playing song")
           await manager.play().catch((err) => {
             console.error("Error auto-playing:", err)
             if (isMounted) {
@@ -143,6 +152,7 @@ export function MusicPlayer() {
             }
           })
         } else {
+          console.log("MusicPlayer: Not auto-playing song")
           // If not playing, we should still reset loading state
           if (isMounted) {
             setIsLoading(false)
@@ -153,15 +163,24 @@ export function MusicPlayer() {
         if (isMounted) {
           setAudioError("Failed to load audio file")
           setIsLoading(false)
+
+          // Show toast with error
+          toast({
+            title: "Lỗi phát nhạc",
+            description: "Không thể phát file âm thanh. Vui lòng thử lại với file khác.",
+            variant: "destructive",
+          })
         }
       }
     }
 
     // Nếu player vừa được mở lại sau khi đóng, luôn tải lại bài hát
     if (playerClosedRef.current) {
+      console.log("MusicPlayer: Player was closed, reloading song")
       playerClosedRef.current = false
       loadAndPlay()
     } else {
+      console.log("MusicPlayer: Loading song normally")
       loadAndPlay()
     }
 
@@ -338,29 +357,36 @@ export function MusicPlayer() {
           )}
 
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <img
-                src={currentSong.coverArt || "/placeholder.svg?height=48&width=48"}
-                alt={currentSong.title}
-                className="h-12 w-12 rounded-md object-cover"
-              />
-              <div>
-                <h3 className="font-medium">{currentSong.title}</h3>
-                <p className="text-sm text-muted-foreground">{currentSong.artist}</p>
-              </div>
+          <div className="flex items-center space-x-4 max-w-[20%] overflow-hidden">
+            <img
+              src={currentSong.coverArt || "/placeholder.svg?height=48&width=48"}
+              alt={currentSong.title}
+              className="h-12 w-12 rounded-md object-cover shrink-0"
+            />
+            <div className="min-w-0"> {/* Thêm min-w-0 để đảm bảo div con có thể co lại */}
+              <h3 className="font-medium text-sm truncate whitespace-nowrap overflow-hidden text-ellipsis">
+                {currentSong.title}
+              </h3>
+              <p className="text-sm text-muted-foreground truncate whitespace-nowrap overflow-hidden text-ellipsis">
+                {currentSong.artist}
+              </p>
             </div>
+          </div>
+
 
             <div className="flex-1 mx-8">
               <div className="flex items-center justify-center space-x-4">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleToggleRepeat}
-                  className={isRepeat ? "text-primary" : ""}
-                  disabled={controlsDisabled}
-                >
-                  <Repeat className="h-5 w-5" />
-                </Button>
+                {!isReviewSong && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleToggleRepeat}
+                    className={isRepeat ? "text-primary" : ""}
+                    disabled={controlsDisabled}
+                  >
+                    <Repeat className="h-5 w-5" />
+                  </Button>
+                )}
 
                 <Button variant="ghost" size="icon" onClick={handleTogglePlay} disabled={playButtonDisabled}>
                   {isLoading && !audioLoadedRef.current ? (
@@ -372,15 +398,17 @@ export function MusicPlayer() {
                   )}
                 </Button>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleToggleLyrics}
-                  className={showLyrics ? "text-primary" : ""}
-                  disabled={controlsDisabled}
-                >
-                  <Music className="h-5 w-5" />
-                </Button>
+                {!isReviewSong && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleToggleLyrics}
+                    className={showLyrics ? "text-primary" : ""}
+                    disabled={controlsDisabled}
+                  >
+                    <Music className="h-5 w-5" />
+                  </Button>
+                )}
               </div>
 
               <div className="flex items-center space-x-2 mt-2">
@@ -420,7 +448,7 @@ export function MusicPlayer() {
             </div>
           </div>
 
-          {showLyrics && (
+          {showLyrics && !isReviewSong && (
             <div className="mt-4 p-4 bg-muted rounded-md max-h-48 overflow-y-auto">
               <pre className="text-sm whitespace-pre-wrap font-sans">{currentSong.lyrics || "No lyrics available"}</pre>
             </div>

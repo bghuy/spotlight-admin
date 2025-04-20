@@ -6,12 +6,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label"
 import { toast } from "@/hooks/use-toast"
 import { Music, Upload, ImageIcon, Play, Search, X } from "lucide-react"
-import { useAppDispatch } from "@/lib/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/lib/store/hooks"
 import { playSong } from "@/lib/store/music-player-slice"
+import { fetchAlbums } from "@/lib/store/albums-slice"
 import type { Song, Album, Artist } from "@/lib/types"
-import { albumClient, artistClient } from "@/lib/api-client"
+import { artistClient, songsClient, uploadClient } from "@/lib/api-client"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import type { CreateSongRequest } from "@/lib/types"
 
 // Thêm hook useDebounce
 function useDebounce<T>(value: T, delay: number): T {
@@ -43,6 +45,9 @@ export function UploadSongForm() {
   const [albumResults, setAlbumResults] = useState<Album[]>([])
   const [artistResults, setArtistResults] = useState<Artist[]>([])
 
+  // Get albums from Redux store
+  const { items: storeAlbums, loading: albumsLoading } = useAppSelector((state) => state.albums)
+
   // Debounce search queries
   const [isSearchingAlbums, setIsSearchingAlbums] = useState(false)
   const [isSearchingArtists, setIsSearchingArtists] = useState(false)
@@ -70,47 +75,52 @@ export function UploadSongForm() {
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const albums = await albumClient.getAlbums()
-        setAlbumResults(albums)
+        // Dispatch action to fetch albums from Redux store
+        dispatch(fetchAlbums())
 
+        // Still fetch artists from API for now
         const artists = await artistClient.getArtists()
-        setArtistResults(artists)
+        setArtistResults(artists.items)
       } catch (error) {
         console.error("Error fetching initial data:", error)
       }
     }
 
     fetchInitialData()
-  }, [])
+  }, [dispatch])
 
-  // Search albums with debounce
+  // Set initial album results from store when they load
   useEffect(() => {
-    const searchAlbums = async () => {
-      if (!debouncedAlbumQuery) {
-        // Nếu query rỗng, lấy tất cả album
-        try {
-          const allAlbums = await albumClient.getAlbums()
-          setAlbumResults(allAlbums)
-        } catch (error) {
-          console.error("Error fetching all albums:", error)
-        }
-        return
-      }
+    if (storeAlbums.length > 0 && albumResults.length === 0) {
+      setAlbumResults(storeAlbums)
+    }
+  }, [storeAlbums, albumResults.length])
 
-      setIsSearchingAlbums(true)
-      try {
-        const results = await albumClient.searchAlbums(debouncedAlbumQuery)
-        console.log("Album search results:", results)
-        setAlbumResults(results)
-      } catch (error) {
-        console.error("Error searching albums:", error)
-      } finally {
-        setIsSearchingAlbums(false)
-      }
+  // Update the album search effect to filter from store instead of API
+  useEffect(() => {
+    if (!debouncedAlbumQuery) {
+      // If query is empty, use all albums from store
+      setAlbumResults(storeAlbums)
+      return
     }
 
-    searchAlbums()
-  }, [debouncedAlbumQuery])
+    setIsSearchingAlbums(true)
+    try {
+      // Filter albums from store based on search query
+      const lowerQuery = debouncedAlbumQuery.toLowerCase()
+      const filteredAlbums = storeAlbums.filter(
+        (album) =>
+          album.title.toLowerCase().includes(lowerQuery) ||
+          (album.artists?.[0]?.name || album.artistName || "").toLowerCase().includes(lowerQuery),
+      )
+
+      setAlbumResults(filteredAlbums)
+    } catch (error) {
+      console.error("Error filtering albums:", error)
+    } finally {
+      setIsSearchingAlbums(false)
+    }
+  }, [debouncedAlbumQuery, storeAlbums])
 
   // Search artists with debounce
   useEffect(() => {
@@ -119,7 +129,7 @@ export function UploadSongForm() {
         // Nếu query rỗng, lấy tất cả artist
         try {
           const allArtists = await artistClient.getArtists()
-          setArtistResults(allArtists)
+          setArtistResults(allArtists.items)
         } catch (error) {
           console.error("Error fetching all artists:", error)
         }
@@ -229,7 +239,8 @@ export function UploadSongForm() {
       uploadDate: new Date().toISOString(),
       status: "pending",
       audioUrl: audioUrl,
-      coverArt: coverUrl || selectedAlbum?.coverArt || "/placeholder.svg?height=80&width=80",
+      coverArt:
+        coverUrl || selectedAlbum?.image?.url || selectedAlbum?.coverArt || "/placeholder.svg?height=80&width=80",
       albumId: selectedAlbum?.id,
       artistId: selectedArtist?.id,
     }
@@ -256,12 +267,25 @@ export function UploadSongForm() {
       return
     }
 
+    console.log("Selected Album:", selectedAlbum)
+    console.log("Selected Artist:", selectedArtist)
+
     setIsLoading(true)
 
     try {
       // Here you would normally send the data to your API
       // For this example, we'll just show a success message
-
+      const uploadedAudioFile = await uploadClient.uploadFile(audioFile);
+      const uploadedCoverFile = await uploadClient.uploadFile(coverFile);
+      const newSong = await songsClient.createSong({
+        "album_id": selectedAlbum?.id,
+        "artist_ids": [selectedArtist.id],
+        "audio_id": uploadedAudioFile.id,
+        "color": "",
+        "cover_image_id": uploadedCoverFile.id,
+        "release_date": "2025-04-20",
+        "title": uploadedAudioFile.name
+      })
       toast({
         title: "Song submitted",
         description: "Your song has been submitted for review.",
@@ -298,7 +322,6 @@ export function UploadSongForm() {
       setIsLoading(false)
     }
   }
-
   // Clean up URLs when component unmounts
   const cleanUpUrls = () => {
     if (audioUrl) URL.revokeObjectURL(audioUrl)
@@ -337,7 +360,7 @@ export function UploadSongForm() {
                       onValueChange={setAlbumSearchQuery}
                     />
                     <CommandList>
-                      {isSearchingAlbums ? (
+                      {isSearchingAlbums || albumsLoading ? (
                         <div className="py-6 text-center text-sm">
                           <svg
                             className="mx-auto h-5 w-5 animate-spin text-muted-foreground"
@@ -359,13 +382,13 @@ export function UploadSongForm() {
                               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                             ></path>
                           </svg>
-                          <p className="mt-2">Searching albums...</p>
+                          <p className="mt-2">{albumsLoading ? "Loading albums..." : "Searching albums..."}</p>
                         </div>
                       ) : (
                         <>
                           <CommandEmpty>No albums found.</CommandEmpty>
                           <CommandGroup>
-                            {albumResults.map((album) => (
+                            {albumResults?.map((album) => (
                               <CommandItem
                                 key={album.id}
                                 value={album.title}
@@ -375,16 +398,18 @@ export function UploadSongForm() {
                                 }}
                                 className="flex items-center gap-2"
                               >
-                                {album.coverArt && (
+                                {(album.image?.url || album.coverArt) && (
                                   <img
-                                    src={album.coverArt || "/placeholder.svg"}
+                                    src={album.image?.url || album.coverArt || "/placeholder.svg"}
                                     alt={album.title}
                                     className="h-6 w-6 rounded object-cover"
                                   />
                                 )}
                                 <span>{album.title}</span>
-                                {album.artistName && (
-                                  <span className="text-xs text-muted-foreground">by {album.artistName}</span>
+                                {(album.artists?.[0]?.name || album.artistName) && (
+                                  <span className="text-xs text-muted-foreground">
+                                    by {album.artists?.[0]?.name || album.artistName}
+                                  </span>
                                 )}
                               </CommandItem>
                             ))}
@@ -406,17 +431,19 @@ export function UploadSongForm() {
 
             {selectedAlbum && (
               <div className="flex items-center gap-2 mt-2">
-                {selectedAlbum.coverArt && (
+                {(selectedAlbum.image?.url || selectedAlbum.coverArt) && (
                   <img
-                    src={selectedAlbum.coverArt || "/placeholder.svg"}
+                    src={selectedAlbum.image?.url || selectedAlbum.coverArt || "/placeholder.svg"}
                     alt={selectedAlbum.title}
                     className="h-10 w-10 rounded object-cover"
                   />
                 )}
                 <div>
                   <p className="text-sm font-medium">{selectedAlbum.title}</p>
-                  {selectedAlbum.artistName && (
-                    <p className="text-xs text-muted-foreground">by {selectedAlbum.artistName}</p>
+                  {(selectedAlbum.artists?.[0]?.name || selectedAlbum.artistName) && (
+                    <p className="text-xs text-muted-foreground">
+                      by {selectedAlbum.artists?.[0]?.name || selectedAlbum.artistName}
+                    </p>
                   )}
                 </div>
               </div>

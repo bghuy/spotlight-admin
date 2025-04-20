@@ -9,9 +9,14 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/hooks/use-toast"
 import { ImageIcon, Upload } from "lucide-react"
-import { albumClient, uploadClient } from "@/lib/api-client"
+import { useAppDispatch } from "@/lib/store/hooks"
+import { createAlbum } from "@/lib/store/albums-slice"
+import type { CreateAlbumRequest } from "@/lib/types"
+import { uploadClient } from "@/lib/api-client"
 
 export function UploadAlbumForm() {
+  const dispatch = useAppDispatch()
+
   // Form data
   const [title, setTitle] = useState("")
   const [alias, setAlias] = useState("")
@@ -75,9 +80,9 @@ export function UploadAlbumForm() {
     setTitle(newTitle)
 
     // Only auto-generate alias if user hasn't manually edited it
-    // if (!alias || alias === generateAlias(title)) {
-    //   setAlias(generateAlias(newTitle))
-    // }
+    if (!alias || alias === generateAlias(title)) {
+      setAlias(generateAlias(newTitle))
+    }
   }
 
   // Handle form submission
@@ -96,23 +101,20 @@ export function UploadAlbumForm() {
     setIsLoading(true)
 
     try {
-      const uploadedFile = await uploadClient.uploadFile(coverFile)
-      if(!uploadedFile){
-        throw new Error("Failed to upload cover image")
+      // Create album request object with the new format
+      const uploadedFile = await uploadClient.uploadFile(coverFile);
+
+      const albumData: CreateAlbumRequest = {
+        color: color,
+        cover_image_id: uploadedFile.id,
+        description: description,
+        song_ids: [],
+        title: title,
+        type: type
       }
-      console.log(uploadedFile, "uploadedFile")
-      // Create the album
-      const newAlbum = await albumClient.createAlbum({
-        title,
-        alias,
-        description,
-        type,
-        color,
-        cover_image_id: uploadedFile.id, // In a real app, this would be the ID from your media service
-        coverArt: uploadedFile.url,
-        releaseDate: new Date().toISOString(),
-        song_ids: [], // Empty array as no songs are selected yet
-      })
+
+      // Dispatch create album action
+      const resultAction = await dispatch(createAlbum(albumData)).unwrap()
 
       toast({
         title: "Album created",
@@ -128,7 +130,7 @@ export function UploadAlbumForm() {
 
       // Clean up URLs
       if (coverUrl) {
-        URL.revokeObjectURL(coverUrl)
+        // URL.revokeObjectURL(coverUrl)
         setCoverUrl(null)
         setCoverFile(null)
       }
@@ -167,18 +169,19 @@ export function UploadAlbumForm() {
           </div>
 
           {/* Album Alias */}
-          {/* <div className="space-y-2">
-            <Label htmlFor="alias">Album Alias</Label>
+          <div className="space-y-2">
+            <Label htmlFor="alias">Album Alias *</Label>
             <Input
               id="alias"
               value={alias}
               onChange={(e) => setAlias(e.target.value)}
               placeholder="Enter album alias (URL-friendly name)"
+              required
             />
             <p className="text-xs text-muted-foreground">
               URL-friendly identifier for the album. Auto-generated from title but can be customized.
             </p>
-          </div> */}
+          </div>
 
           {/* Album Type */}
           <div className="space-y-2">

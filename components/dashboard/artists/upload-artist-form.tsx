@@ -7,11 +7,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "@/hooks/use-toast"
 import { ImageIcon, Upload } from "lucide-react"
-import { artistClient } from "@/lib/api-client"
+import { artistClient, uploadClient } from "@/lib/api-client"
+import type { CreateArtistRequest } from "@/lib/types"
 
 export function UploadArtistForm() {
   // Form data
   const [name, setName] = useState("")
+  const [color, setColor] = useState("#3b82f6") // Default color - blue
+  const [avatarId, setAvatarId] = useState("")
 
   // File uploads
   const [imageFile, setImageFile] = useState<File | null>(null)
@@ -49,6 +52,10 @@ export function UploadArtistForm() {
     setImageFile(file)
     setImageUrl(url)
 
+    // Trong thực tế, bạn sẽ upload file lên server và nhận về avatar_id
+    // Ở đây chúng ta giả định avatar_id là tên file
+    setAvatarId(file.name)
+
     toast({
       title: "Artist image uploaded",
       description: `${file.name} has been uploaded.`,
@@ -59,10 +66,10 @@ export function UploadArtistForm() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
 
-    if (!name) {
+    if (!name || !avatarId) {
       toast({
         title: "Missing information",
-        description: "Please enter an artist name.",
+        description: "Please enter an artist name and upload an avatar image.",
         variant: "destructive",
       })
       return
@@ -71,13 +78,16 @@ export function UploadArtistForm() {
     setIsLoading(true)
 
     try {
-      // Create the artist
-      const newArtist = await artistClient.createArtist({
+      const uploadedFile = await uploadClient.uploadFile(imageFile);
+      // Tạo request object theo cấu trúc API mới
+      const artistRequest: CreateArtistRequest = {
         name,
-        image: imageUrl || "/placeholder.svg?height=200&width=200",
-      })
-      const artists = await artistClient.getArtists()
-      console.log(artists,"artists")
+        color,
+        avatar_id: uploadedFile.id,
+      }
+
+      // Create the artist
+      const newArtist = await artistClient.createArtist(artistRequest)
 
       toast({
         title: "Artist created",
@@ -86,10 +96,12 @@ export function UploadArtistForm() {
 
       // Reset form
       setName("")
+      setColor("#3b82f6")
+      setAvatarId("")
 
       // Clean up URLs
       if (imageUrl) {
-        // URL.revokeObjectURL(imageUrl)
+        URL.revokeObjectURL(imageUrl)
         setImageUrl(null)
         setImageFile(null)
       }
@@ -133,9 +145,27 @@ export function UploadArtistForm() {
             />
           </div>
 
+          {/* Artist Color */}
+          <div className="space-y-2">
+            <Label htmlFor="color">Theme Color</Label>
+            <div className="flex items-center gap-3">
+              <Input
+                id="color"
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className="w-12 h-10 p-1 cursor-pointer"
+              />
+              <span className="text-sm">{color}</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Choose a theme color for the artist. This will be used for styling the artist page.
+            </p>
+          </div>
+
           {/* Artist Image Upload */}
           <div className="space-y-2">
-            <Label htmlFor="image">Artist Image</Label>
+            <Label htmlFor="image">Artist Avatar *</Label>
             <div className="flex items-center gap-4">
               <div className="flex-1">
                 <div
@@ -170,7 +200,7 @@ export function UploadArtistForm() {
               </div>
 
               {imageUrl && (
-                <div className="h-40 w-40 rounded-full overflow-hidden border">
+                <div className="h-40 w-40 rounded-full overflow-hidden border" style={{ backgroundColor: color }}>
                   <img
                     src={imageUrl || "/placeholder.svg"}
                     alt="Artist preview"

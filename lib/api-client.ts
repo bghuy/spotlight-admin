@@ -7,7 +7,7 @@ import {
   analyticsService,
   albumService,
   artistService,
-  uploadService,
+  uploadService
 } from "@/lib/api-service"
 import { saveGeneralSettings, saveNotificationSettings, saveSecuritySettings, saveApiSettings } from "@/lib/actions"
 
@@ -28,6 +28,7 @@ export const songsClient = {
   getSongs: songService.getSongs,
   approveSong: songService.approveSong,
   rejectSong: songService.rejectSong,
+  createSong: songService.createSong,
 }
 
 export const analyticsClient = {
@@ -49,6 +50,8 @@ export const albumClient = {
   getAlbumById: albumService.getAlbumById,
   searchAlbums: albumService.searchAlbums,
   createAlbum: albumService.createAlbum,
+  updateAlbum: albumService.updateAlbum,
+  deleteAlbum: albumService.deleteAlbum,
 }
 
 export const artistClient = {
@@ -57,6 +60,7 @@ export const artistClient = {
   searchArtists: artistService.searchArtists,
   createArtist: artistService.createArtist,
 }
+
 
 export const uploadClient = {
   uploadFile:  uploadService.uploadFile

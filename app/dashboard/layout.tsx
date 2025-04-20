@@ -32,6 +32,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       return userData.data
     } catch (error) {
       console.error("Error fetching user:", error)
+      router.push("/login")
     }
 
   }

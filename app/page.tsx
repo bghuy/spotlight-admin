@@ -1,8 +1,14 @@
 "use client"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 export default function Home() {
+  const router = useRouter();
+  useEffect(()=>{
+    router.push("/login")
+  },[])
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       <div className="container flex flex-col items-center justify-center gap-6 px-4 py-16 text-center md:py-24">

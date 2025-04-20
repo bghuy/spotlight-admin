@@ -1,17 +1,21 @@
-import type { ArtistRequest, Song, User, AnalyticsData } from "@/lib/types"
+import type { ArtistRequest, Song, User, AnalyticsData, Album, Artist, UserStats, SongStats } from "@/lib/types"
 
 // Simulate API delay
-const simulateDelay = () => new Promise((resolve) => setTimeout(resolve, 300))
+const simulateDelay = (min = 300, max = 1200) => {
+  const delay = Math.floor(Math.random() * (max - min + 1)) + min
+  return new Promise((resolve) => setTimeout(resolve, delay))
+}
 
-// Mock data for users
-const mockUsers: User[] = [
+// Mock data for users - Thêm trường createdAt
+const mockUsers: (User & { createdAt: string })[] = [
   {
     id: "1",
     name: "Nguyễn Văn A",
     email: "nguyenvana@example.com",
     role: "admin",
     status: "active",
-    lastActive: "2023-04-01",
+    lastActive: "2025-04-01",
+    createdAt: "2025-01-15",
   },
   {
     id: "2",
@@ -19,7 +23,8 @@ const mockUsers: User[] = [
     email: "tranthib@example.com",
     role: "artist",
     status: "active",
-    lastActive: "2023-04-02",
+    lastActive: "2025-04-02",
+    createdAt: "2025-02-10",
   },
   {
     id: "3",
@@ -27,7 +32,8 @@ const mockUsers: User[] = [
     email: "levanc@example.com",
     role: "user",
     status: "active",
-    lastActive: "2023-04-03",
+    lastActive: "2025-04-03",
+    createdAt: "2025-03-05",
   },
   {
     id: "4",
@@ -35,7 +41,8 @@ const mockUsers: User[] = [
     email: "phamthid@example.com",
     role: "user",
     status: "inactive",
-    lastActive: "2023-03-15",
+    lastActive: "2025-03-15",
+    createdAt: "2025-03-20",
   },
   {
     id: "5",
@@ -43,7 +50,71 @@ const mockUsers: User[] = [
     email: "hoangvane@example.com",
     role: "artist",
     status: "active",
-    lastActive: "2023-04-04",
+    lastActive: "2025-04-04",
+    createdAt: "2025-04-01",
+  },
+  {
+    id: "6",
+    name: "Ngô Thị F",
+    email: "ngothif@example.com",
+    role: "user",
+    status: "active",
+    lastActive: "2025-04-05",
+    createdAt: "2025-04-15",
+  },
+  {
+    id: "7",
+    name: "Đỗ Văn G",
+    email: "dovang@example.com",
+    role: "user",
+    status: "active",
+    lastActive: "2025-05-01",
+    createdAt: "2025-05-05",
+  },
+  {
+    id: "8",
+    name: "Vũ Thị H",
+    email: "vuthih@example.com",
+    role: "user",
+    status: "active",
+    lastActive: "2025-05-10",
+    createdAt: "2025-05-20",
+  },
+  {
+    id: "9",
+    name: "Bùi Văn I",
+    email: "buivani@example.com",
+    role: "artist",
+    status: "active",
+    lastActive: "2025-05-01",
+    createdAt: "2025-05-10",
+  },
+  {
+    id: "10",
+    name: "Dương Thị K",
+    email: "duongthik@example.com",
+    role: "user",
+    status: "active",
+    lastActive: "2025-05-15",
+    createdAt: "2025-05-25",
+  },
+  {
+    id: "11",
+    name: "Lý Văn L",
+    email: "lyvanl@example.com",
+    role: "user",
+    status: "active",
+    lastActive: "2025-05-01",
+    createdAt: "2025-05-05",
+  },
+  {
+    id: "12",
+    name: "Trịnh Thị M",
+    email: "trinhthim@example.com",
+    role: "user",
+    status: "active",
+    lastActive: "2025-05-10",
+    createdAt: "2025-05-20",
   },
 ]
 
@@ -78,6 +149,129 @@ const mockArtistRequests: ArtistRequest[] = [
   },
 ]
 
+// Mock data for artists - Thêm trường createdAt
+const mockArtists: (Artist & { createdAt: string })[] = [
+  {
+    id: "1",
+    name: "Sơn Tùng M-TP",
+    image: "/placeholder.svg?height=200&width=200",
+    genre: "Pop",
+    bio: "Vietnamese singer, songwriter, and actor",
+    albumCount: 3,
+    songCount: 15,
+    createdAt: "2023-01-10",
+  },
+  {
+    id: "2",
+    name: "Đen Vâu",
+    image: "/placeholder.svg?height=200&width=200",
+    genre: "Hip-hop",
+    bio: "Vietnamese rapper and songwriter",
+    albumCount: 2,
+    songCount: 12,
+    createdAt: "2023-02-15",
+  },
+  {
+    id: "3",
+    name: "Hoàng Thùy Linh",
+    image: "/placeholder.svg?height=200&width=200",
+    genre: "Pop",
+    bio: "Vietnamese singer and actress",
+    albumCount: 4,
+    songCount: 20,
+    createdAt: "2023-03-20",
+  },
+  {
+    id: "4",
+    name: "Bích Phương",
+    image: "/placeholder.svg?height=200&width=200",
+    genre: "Pop",
+    bio: "Vietnamese singer",
+    albumCount: 3,
+    songCount: 18,
+    createdAt: "2023-04-25",
+  },
+  {
+    id: "5",
+    name: "Vũ Cát Tường",
+    image: "/placeholder.svg?height=200&width=200",
+    genre: "Pop",
+    bio: "Vietnamese singer-songwriter",
+    albumCount: 2,
+    songCount: 10,
+    createdAt: "2023-05-30",
+  },
+  {
+    id: "6",
+    name: "Mỹ Tâm",
+    image: "/placeholder.svg?height=200&width=200",
+    genre: "Pop",
+    bio: "Vietnamese singer and actress",
+    albumCount: 5,
+    songCount: 25,
+    createdAt: "2023-06-15",
+  },
+  {
+    id: "7",
+    name: "Trúc Nhân",
+    image: "/placeholder.svg?height=200&width=200",
+    genre: "Pop",
+    bio: "Vietnamese singer",
+    albumCount: 2,
+    songCount: 12,
+    createdAt: "2023-07-20",
+  },
+]
+
+// Mock data for albums
+const mockAlbums: Album[] = [
+  {
+    id: "1",
+    title: "Chúng Ta Của Hiện Tại",
+    coverArt: "/placeholder.svg?height=200&width=200",
+    artistId: "1",
+    artistName: "Sơn Tùng M-TP",
+    releaseDate: "2021-07-05",
+    songCount: 5,
+  },
+  {
+    id: "2",
+    title: "Trạm Dừng Chân",
+    coverArt: "/placeholder.svg?height=200&width=200",
+    artistId: "2",
+    artistName: "Đen Vâu",
+    releaseDate: "2022-01-15",
+    songCount: 6,
+  },
+  {
+    id: "3",
+    title: "Hoàng",
+    coverArt: "/placeholder.svg?height=200&width=200",
+    artistId: "3",
+    artistName: "Hoàng Thùy Linh",
+    releaseDate: "2019-10-20",
+    songCount: 8,
+  },
+  {
+    id: "4",
+    title: "Hiếm Có Khó Tìm",
+    coverArt: "/placeholder.svg?height=200&width=200",
+    artistId: "4",
+    artistName: "Bích Phương",
+    releaseDate: "2020-05-10",
+    songCount: 7,
+  },
+  {
+    id: "5",
+    title: "Vũ Trụ Trong Mắt Em",
+    coverArt: "/placeholder.svg?height=200&width=200",
+    artistId: "5",
+    artistName: "Vũ Cát Tường",
+    releaseDate: "2019-08-30",
+    songCount: 5,
+  },
+]
+
 // Mock data for song review requests with audio URLs - using reliable audio samples
 const mockSongs: Song[] = [
   {
@@ -86,9 +280,8 @@ const mockSongs: Song[] = [
     artist: "Nguyễn Văn A",
     genre: "Pop",
     duration: "3:45",
-    uploadDate: "2023-04-01",
-    status: "pending",
-    // Using a reliable audio sample
+    uploadDate: "2025-01-15",
+    status: "approved",
     audioUrl: "https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg",
     coverArt: "/placeholder.svg?height=80&width=80",
     lyrics: `[Verse 1]
@@ -108,6 +301,8 @@ Ocean waves, lazy days
 Sipping cool drinks, not overthinking
 Friends around, music sound
 Happiness all around`,
+    albumId: "1",
+    artistId: "1",
   },
   {
     id: "2",
@@ -115,9 +310,8 @@ Happiness all around`,
     artist: "Trần Thị B",
     genre: "Rock",
     duration: "4:12",
-    uploadDate: "2023-04-02",
-    status: "pending",
-    // Using a reliable audio sample
+    uploadDate: "2025-02-20",
+    status: "approved",
     audioUrl: "https://actions.google.com/sounds/v1/alarms/assorted_computer_sounds.ogg",
     coverArt: "/placeholder.svg?height=80&width=80",
     lyrics: `[Verse 1]
@@ -137,6 +331,8 @@ Busy streets, endless beats
 Strangers pass, nobody greets
 But I find my way somehow
 Living in the here and now`,
+    albumId: "2",
+    artistId: "2",
   },
   {
     id: "3",
@@ -144,9 +340,8 @@ Living in the here and now`,
     artist: "Lê Văn C",
     genre: "Hip-hop",
     duration: "3:28",
-    uploadDate: "2023-04-03",
-    status: "pending",
-    // Using a reliable audio sample
+    uploadDate: "2025-03-10",
+    status: "approved",
     audioUrl: "https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg",
     coverArt: "/placeholder.svg?height=80&width=80",
     lyrics: `[Verse 1]
@@ -166,6 +361,8 @@ Silent night, internal fight
 Seeking peace, looking for release
 Time goes by, wondering why
 Finding strength, reaching new heights`,
+    albumId: "3",
+    artistId: "3",
   },
   {
     id: "4",
@@ -173,9 +370,8 @@ Finding strength, reaching new heights`,
     artist: "Phạm Thị D",
     genre: "Ambient",
     duration: "5:16",
-    uploadDate: "2023-04-04",
-    status: "pending",
-    // Using a reliable audio sample
+    uploadDate: "2025-04-05",
+    status: "approved",
     audioUrl: "https://actions.google.com/sounds/v1/alarms/dosimeter_alarm.ogg",
     coverArt: "/placeholder.svg?height=80&width=80",
     lyrics: `[Verse 1]
@@ -195,6 +391,76 @@ Endless blue meets the sky above
 Nature's beauty, filled with love
 Time stands still, worries fade
 Perfect moments that won't degrade`,
+    albumId: "4",
+    artistId: "4",
+  },
+  {
+    id: "5",
+    title: "Mountain High",
+    artist: "Hoàng Văn E",
+    genre: "Folk",
+    duration: "4:30",
+    uploadDate: "2025-05-12",
+    status: "approved",
+    audioUrl: "https://actions.google.com/sounds/v1/alarms/beep_short.ogg",
+    coverArt: "/placeholder.svg?height=80&width=80",
+    lyrics: `Mountain high, reaching for the sky
+Freedom calls, standing tall
+Nature's gift, spirits lift
+Finding peace, worries cease`,
+    albumId: "5",
+    artistId: "5",
+  },
+  {
+    id: "6",
+    title: "Urban Jungle",
+    artist: "Ngô Thị F",
+    genre: "Electronic",
+    duration: "3:55",
+    uploadDate: "2025-05-18",
+    status: "approved",
+    audioUrl: "https://actions.google.com/sounds/v1/alarms/beep_short_pleasant.ogg",
+    coverArt: "/placeholder.svg?height=80&width=80",
+    lyrics: `Urban jungle, concrete and steel
+City rhythm, how does it feel
+Neon lights, sleepless nights
+Finding my way through the haze`,
+    albumId: "1",
+    artistId: "6",
+  },
+  {
+    id: "7",
+    title: "Desert Wind",
+    artist: "Đỗ Văn G",
+    genre: "World",
+    duration: "4:45",
+    uploadDate: "2025-05-19",
+    status: "approved",
+    audioUrl: "https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg",
+    coverArt: "/placeholder.svg?height=80&width=80",
+    lyrics: `Desert wind, sand in motion
+Endless dunes, like an ocean
+Ancient tales, whispered by the breeze
+Finding strength in the mysteries`,
+    albumId: "2",
+    artistId: "7",
+  },
+  {
+    id: "8",
+    title: "Rainy Day",
+    artist: "Vũ Thị H",
+    genre: "Jazz",
+    duration: "5:10",
+    uploadDate: "2025-04-30",
+    status: "pending",
+    audioUrl: "https://actions.google.com/sounds/v1/alarms/carbon_monoxide_detector.ogg",
+    coverArt: "/placeholder.svg?height=80&width=80",
+    lyrics: `Rainy day, drops on my window
+Cozy inside, watching the show
+Jazz playing soft, coffee in hand
+Perfect moment, unplanned`,
+    albumId: "3",
+    artistId: "1",
   },
 ]
 
@@ -251,6 +517,63 @@ export const userService = {
 
     mockUsers[userIndex] = { ...mockUsers[userIndex], status }
     return { ...mockUsers[userIndex] }
+  },
+
+  // Thêm phương thức để lấy tổng số người dùng
+  getTotalUsers: async (): Promise<number> => {
+    await simulateDelay(200, 500)
+    return mockUsers.length
+  },
+
+  // Thêm phương thức để lấy người dùng theo tháng
+  getUsersByMonth: async (startDate: Date, endDate: Date): Promise<UserStats[]> => {
+    await simulateDelay(500, 1000)
+
+    // Tạo map để lưu trữ số lượng người dùng theo tháng
+    const usersByMonth = new Map<string, { users: number }>()
+
+    // Tạo danh sách các tháng trong khoảng thời gian
+    const months: string[] = []
+    const currentDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1)
+    const endMonthDate = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0)
+
+    while (currentDate <= endMonthDate) {
+      const month = currentDate.getMonth()
+      const year = currentDate.getFullYear()
+      const monthName = new Date(year, month, 1).toLocaleString("default", { month: "short" })
+      const monthKey = `${monthName} ${year}`
+
+      months.push(monthKey)
+      usersByMonth.set(monthKey, { users: 0 })
+
+      currentDate.setMonth(currentDate.getMonth() + 1)
+    }
+
+    // Đếm số lượng người dùng theo tháng
+    for (const user of mockUsers) {
+      const createdAt = new Date(user.createdAt)
+
+      if (createdAt >= startDate && createdAt <= endDate) {
+        const month = createdAt.getMonth()
+        const year = createdAt.getFullYear()
+        const monthName = new Date(year, month, 1).toLocaleString("default", { month: "short" })
+        const monthKey = `${monthName} ${year}`
+
+        if (usersByMonth.has(monthKey)) {
+          const monthData = usersByMonth.get(monthKey)!
+          monthData.users += 1
+        }
+      }
+    }
+
+    // Chuyển đổi map thành mảng kết quả
+    const result: UserStats[] = months.map((month) => ({
+      month,
+      users: usersByMonth.get(month)?.users || 0,
+    }))
+
+    console.log("Generated user stats from real data:", result)
+    return result
   },
 }
 
@@ -310,12 +633,185 @@ export const songService = {
     mockSongs[songIndex] = { ...mockSongs[songIndex], status: "rejected" }
     return { ...mockSongs[songIndex] }
   },
+
+  // Thêm phương thức để lấy tổng số bài hát
+  getTotalSongs: async (): Promise<number> => {
+    await simulateDelay(200, 500)
+    return mockSongs.length
+  },
+
+  // Thêm phương thức để lấy bài hát theo tháng
+  getSongsByMonth: async (startDate: Date, endDate: Date): Promise<SongStats[]> => {
+    await simulateDelay(500, 1000)
+
+    // Tạo map để lưu trữ số lượng bài hát theo tháng
+    const songsByMonth = new Map<string, { totalSongs: number; likes: number; dislikes: number }>()
+
+    // Tạo danh sách các tháng trong khoảng thời gian
+    const months: string[] = []
+    const currentDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1)
+    const endMonthDate = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0)
+
+    while (currentDate <= endMonthDate) {
+      const month = currentDate.getMonth()
+      const year = currentDate.getFullYear()
+      const monthName = new Date(year, month, 1).toLocaleString("default", { month: "short" })
+      const monthKey = `${monthName} ${year}`
+
+      months.push(monthKey)
+      songsByMonth.set(monthKey, { totalSongs: 0, likes: 0, dislikes: 0 })
+
+      currentDate.setMonth(currentDate.getMonth() + 1)
+    }
+
+    // Đếm số lượng bài hát theo tháng
+    for (const song of mockSongs) {
+      const uploadDate = new Date(song.uploadDate)
+
+      if (uploadDate >= startDate && uploadDate <= endDate) {
+        const month = uploadDate.getMonth()
+        const year = uploadDate.getFullYear()
+        const monthName = new Date(year, month, 1).toLocaleString("default", { month: "short" })
+        const monthKey = `${monthName} ${year}`
+
+        if (songsByMonth.has(monthKey)) {
+          const monthData = songsByMonth.get(monthKey)!
+          monthData.totalSongs += 1
+
+          // Giả định số lượt like và dislike
+          monthData.likes += Math.floor(Math.random() * 100) + 20
+          monthData.dislikes += Math.floor(Math.random() * 20) + 5
+        }
+      }
+    }
+
+    // Chuyển đổi map thành mảng kết quả
+    const result: SongStats[] = months.map((month) => ({
+      month,
+      totalSongs: songsByMonth.get(month)?.totalSongs || 0,
+      likes: songsByMonth.get(month)?.likes || 0,
+      dislikes: songsByMonth.get(month)?.dislikes || 0,
+    }))
+
+    console.log("Generated song stats from real data:", result)
+    return result
+  },
 }
 
 // API service for analytics
 export const analyticsService = {
+  // API lấy tổng quan từ dữ liệu thực tế
+  getAnalyticsSummary: async (): Promise<{
+    totalUsers: number
+    totalSongs: number
+    totalArtists: number
+  }> => {
+    // Sử dụng Promise.all để gọi nhiều API cùng lúc
+    const [totalUsers, totalSongs, totalArtists] = await Promise.all([
+      userService.getTotalUsers(),
+      songService.getTotalSongs(),
+      artistService.getTotalArtists(),
+    ])
+
+    return {
+      totalUsers,
+      totalSongs,
+      totalArtists,
+    }
+  },
+
+  // API lấy thống kê user theo khoảng thời gian từ dữ liệu thực tế
+  getUserStats: async (startDate: Date, endDate: Date): Promise<UserStats[]> => {
+    return userService.getUsersByMonth(startDate, endDate)
+  },
+
+  // API lấy thống kê song theo khoảng thời gian từ dữ liệu thực tế
+  getSongStats: async (startDate: Date, endDate: Date): Promise<SongStats[]> => {
+    return songService.getSongsByMonth(startDate, endDate)
+  },
+
+  // Giữ lại API cũ để tương thích
   getAnalyticsData: async (): Promise<AnalyticsData> => {
     await simulateDelay()
     return { ...mockAnalyticsData }
+  },
+}
+
+// API service for albums
+export const albumService = {
+  getAlbums: async (): Promise<Album[]> => {
+    await simulateDelay()
+    return [...mockAlbums]
+  },
+
+  getAlbumById: async (id: string): Promise<Album | undefined> => {
+    await simulateDelay()
+    return mockAlbums.find((album) => album.id === id)
+  },
+
+  searchAlbums: async (query: string): Promise<Album[]> => {
+    await simulateDelay()
+    if (!query) return [...mockAlbums]
+
+    const lowerQuery = query.toLowerCase()
+    const results = mockAlbums.filter(
+      (album) =>
+        album.title.toLowerCase().includes(lowerQuery) ||
+        (album.artistName && album.artistName.toLowerCase().includes(lowerQuery)),
+    )
+
+    console.log(`Searching albums with query "${query}":`, results)
+    return results
+  },
+
+  createAlbum: async (album: Omit<Album, "id">): Promise<Album> => {
+    await simulateDelay()
+    const newAlbum: Album = {
+      id: `album-${Date.now()}`,
+      ...album,
+    }
+    mockAlbums.push(newAlbum)
+    return newAlbum
+  },
+}
+
+// API service for artists
+export const artistService = {
+  getArtists: async (): Promise<Artist[]> => {
+    await simulateDelay()
+    return [...mockArtists]
+  },
+
+  getArtistById: async (id: string): Promise<Artist | undefined> => {
+    await simulateDelay()
+    return mockArtists.find((artist) => artist.id === id)
+  },
+
+  searchArtists: async (query: string): Promise<Artist[]> => {
+    await simulateDelay()
+    if (!query) return [...mockArtists]
+
+    const lowerQuery = query.toLowerCase()
+    return mockArtists.filter(
+      (artist) =>
+        artist.name.toLowerCase().includes(lowerQuery) ||
+        (artist.genre && artist.genre.toLowerCase().includes(lowerQuery)),
+    )
+  },
+
+  createArtist: async (artist: Omit<Artist, "id">): Promise<Artist> => {
+    await simulateDelay()
+    const newArtist: Artist = {
+      id: `artist-${Date.now()}`,
+      ...artist,
+    }
+    mockArtists.push(newArtist)
+    return newArtist
+  },
+
+  // Thêm phương thức để lấy tổng số nghệ sĩ
+  getTotalArtists: async (): Promise<number> => {
+    await simulateDelay(200, 500)
+    return mockArtists.length
   },
 }

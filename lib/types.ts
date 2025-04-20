@@ -1,4 +1,3 @@
-"use client"
 export interface User {
   id: string
   name: string
@@ -30,6 +29,28 @@ export interface Song {
   audioUrl?: string
   coverArt?: string
   lyrics?: string
+  albumId?: string
+  artistId?: string
+}
+
+export interface Album {
+  id: string
+  title: string
+  coverArt?: string
+  artistId?: string
+  artistName?: string
+  releaseDate: string
+  songCount?: number
+}
+
+export interface Artist {
+  id: string
+  name: string
+  image?: string
+  genre?: string
+  bio?: string
+  albumCount?: number
+  songCount?: number
 }
 
 export interface AnalyticsData {
@@ -47,4 +68,19 @@ export interface MusicPlayerState {
   isRepeat: boolean
   showLyrics: boolean
   isVisible: boolean
+}
+
+// Thêm các interface mới cho analytics
+// Cập nhật interface UserStats để chỉ có một trường users
+export interface UserStats {
+  month: string
+  users: number
+}
+
+// Cập nhật interface SongStats để có các trường tổng bài hát, like, dislike
+export interface SongStats {
+  month: string
+  totalSongs: number
+  likes: number
+  dislikes: number
 }

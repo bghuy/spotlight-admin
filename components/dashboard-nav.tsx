@@ -13,14 +13,24 @@ const navItems = [
     href: "/dashboard",
     icon: BarChart3,
   },
+  // {
+  //   title: "Artist Approvals",
+  //   href: "/dashboard/artist-approvals",
+  //   icon: UserCheck,
+  // },
+  // {
+  //   title: "Song Reviews",
+  //   href: "/dashboard/song-reviews",
+  //   icon: Music,
+  // },
   {
-    title: "Artist Approvals",
-    href: "/dashboard/artist-approvals",
-    icon: UserCheck,
+    title: "Upload Album",
+    href: "/dashboard/upload-albums",
+    icon: Music,
   },
   {
-    title: "Song Reviews",
-    href: "/dashboard/song-reviews",
+    title: "Upload Artist",
+    href: "/dashboard/upload-artist",
     icon: Music,
   },
   {
@@ -28,16 +38,16 @@ const navItems = [
     href: "/dashboard/upload-song",
     icon: Upload,
   },
-  {
-    title: "User Management",
-    href: "/dashboard/users",
-    icon: Users,
-  },
-  {
-    title: "Settings",
-    href: "/dashboard/settings",
-    icon: Settings,
-  },
+  // {
+  //   title: "User Management",
+  //   href: "/dashboard/users",
+  //   icon: Users,
+  // },
+  // {
+  //   title: "Settings",
+  //   href: "/dashboard/settings",
+  //   icon: Settings,
+  // },
 ]
 
 export function DashboardNav() {

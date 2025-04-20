@@ -28,6 +28,7 @@ export const songsClient = {
   getSongs: songService.getSongs,
   approveSong: songService.approveSong,
   rejectSong: songService.rejectSong,
+  createSong: songService.createSong,
 }
 
 export const analyticsClient = {

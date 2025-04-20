@@ -12,6 +12,7 @@ import type {
   CreateAlbumRequest,
   UpdateAlbumRequest,
   CreatedFile,
+  CreateSongRequest,
 } from "@/lib/types"
 
 // Simulate API delay
@@ -847,6 +848,11 @@ export const artistRequestService = {
 
 // API service for songs
 export const songService = {
+  createSong: async (songData: CreateSongRequest): Promise<Song> => {
+    const res = await axiosInstance.post("api/v1/songs/admin", songData)
+    return res.data;
+  },
+
   getSongs: async (status?: Song["status"]): Promise<Song[]> => {
     await simulateDelay()
     if (status) {
@@ -979,17 +985,19 @@ export const analyticsService = {
 // Updated API service for albums to match the new API response format
 export const albumService = {
   getAlbums: async (): Promise<PaginatedResponse<Album>> => {
-    await simulateDelay()
-    return {
-      items: [...mockAlbums],
-      meta: {
-        count: mockAlbums.length,
-        current_page: 1,
-        per_page: 10,
-        total: mockAlbums.length,
-        total_pages: 1,
-      },
-    }
+    const res = await axiosInstance.get("api/v1/albums/admin")
+    return res.data;
+    // await simulateDelay()
+    // return {
+    //   items: [...mockAlbums],
+    //   meta: {
+    //     count: mockAlbums.length,
+    //     current_page: 1,
+    //     per_page: 10,
+    //     total: mockAlbums.length,
+    //     total_pages: 1,
+    //   },
+    // }
   },
 
   getAlbumById: async (id: string): Promise<Album | undefined> => {
@@ -1019,45 +1027,8 @@ export const albumService = {
 
   // Updated createAlbum method to match the new API request format
   createAlbum: async (albumData: CreateAlbumRequest): Promise<Album> => {
-    await simulateDelay()
-    const newAlbum: Album = {
-      id: `album-${Date.now()}`,
-      title: albumData.title,
-      title_version: albumData.title_version || "",
-      description: albumData.description,
-      type: albumData.type,
-      color: albumData.color,
-      image: albumData.image_id
-        ? {
-            id: albumData.image_id,
-            name: `album-image-${Date.now()}.jpg`,
-            url: "/placeholder.svg?height=200&width=200",
-          }
-        : undefined,
-      artists: albumData.artist_ids
-        ? albumData.artist_ids.map((id) => {
-            const artist = mockArtists.find((a) => a.id === id)
-            return {
-              id,
-              name: artist?.name || "Unknown Artist",
-              title: "Artist",
-            }
-          })
-        : [],
-      categories: [],
-      in_library: true,
-      is_owned: true,
-      is_public: albumData.is_public || true,
-
-      // For backward compatibility
-      alias: albumData.alias,
-      coverArt: "/placeholder.svg?height=200&width=200",
-      releaseDate: new Date().toISOString(),
-      songCount: albumData.song_ids?.length || 0,
-      song_ids: albumData.song_ids,
-    }
-    mockAlbums.push(newAlbum)
-    return newAlbum
+    const res = await axiosInstance.post("api/v1/albums/admin", albumData)
+    return res.data;
   },
 
   // Update the updateAlbum method to match the new API response format
@@ -1115,9 +1086,12 @@ export const albumService = {
 
 // API service for artists
 export const artistService = {
-  getArtists: async (): Promise<Artist[]> => {
-    await simulateDelay()
-    return [...mockArtists]
+  getArtists: async (): Promise<PaginatedResponse<Artist>> => {
+    const res = await axiosInstance.get("api/v1/artists")
+    console.log("res ar", res)
+    return res.data
+    // await simulateDelay()
+    // return [...mockArtists]
   },
 
   getArtistById: async (id: string): Promise<Artist | undefined> => {
@@ -1138,13 +1112,8 @@ export const artistService = {
   },
 
   createArtist: async (artist: Omit<Artist, "id">): Promise<Artist> => {
-    await simulateDelay()
-    const newArtist: Artist = {
-      id: `artist-${Date.now()}`,
-      ...artist,
-    }
-    mockArtists.push(newArtist)
-    return newArtist
+    const res = await axiosInstance.post("api/v1/artists", artist)
+    return res.data;
   },
 
   // Thêm phương thức để lấy tổng số nghệ sĩ

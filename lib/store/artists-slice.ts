@@ -54,7 +54,7 @@ const artistsSlice = createSlice({
       })
       .addCase(fetchArtists.fulfilled, (state, action) => {
         state.loading = false
-        state.items = action.payload
+        state.items = action.payload.items;
       })
       .addCase(fetchArtists.rejected, (state, action) => {
         state.loading = false

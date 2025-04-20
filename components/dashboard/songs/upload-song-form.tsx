@@ -10,9 +10,10 @@ import { useAppDispatch, useAppSelector } from "@/lib/store/hooks"
 import { playSong } from "@/lib/store/music-player-slice"
 import { fetchAlbums } from "@/lib/store/albums-slice"
 import type { Song, Album, Artist } from "@/lib/types"
-import { artistClient } from "@/lib/api-client"
+import { artistClient, songsClient, uploadClient } from "@/lib/api-client"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import type { CreateSongRequest } from "@/lib/types"
 
 // Thêm hook useDebounce
 function useDebounce<T>(value: T, delay: number): T {
@@ -79,7 +80,7 @@ export function UploadSongForm() {
 
         // Still fetch artists from API for now
         const artists = await artistClient.getArtists()
-        setArtistResults(artists)
+        setArtistResults(artists.items)
       } catch (error) {
         console.error("Error fetching initial data:", error)
       }
@@ -128,7 +129,7 @@ export function UploadSongForm() {
         // Nếu query rỗng, lấy tất cả artist
         try {
           const allArtists = await artistClient.getArtists()
-          setArtistResults(allArtists)
+          setArtistResults(allArtists.items)
         } catch (error) {
           console.error("Error fetching all artists:", error)
         }
@@ -266,12 +267,25 @@ export function UploadSongForm() {
       return
     }
 
+    console.log("Selected Album:", selectedAlbum)
+    console.log("Selected Artist:", selectedArtist)
+
     setIsLoading(true)
 
     try {
       // Here you would normally send the data to your API
       // For this example, we'll just show a success message
-
+      const uploadedAudioFile = await uploadClient.uploadFile(audioFile);
+      const uploadedCoverFile = await uploadClient.uploadFile(coverFile);
+      const newSong = await songsClient.createSong({
+        "album_id": selectedAlbum?.id,
+        "artist_ids": [selectedArtist.id],
+        "audio_id": uploadedAudioFile.id,
+        "color": "",
+        "cover_image_id": uploadedCoverFile.id,
+        "release_date": "2025-04-20",
+        "title": uploadedAudioFile.name
+      })
       toast({
         title: "Song submitted",
         description: "Your song has been submitted for review.",
@@ -308,7 +322,6 @@ export function UploadSongForm() {
       setIsLoading(false)
     }
   }
-
   // Clean up URLs when component unmounts
   const cleanUpUrls = () => {
     if (audioUrl) URL.revokeObjectURL(audioUrl)

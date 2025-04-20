@@ -21,16 +21,63 @@ export interface ArtistRequest {
 export interface Song {
   id: string
   title: string
-  artist: string
-  genre: string
-  duration: string
-  uploadDate: string
-  status: "pending" | "approved" | "rejected"
+  color: string
+  duration: number
+  url?: string
+  release_date: string
+  is_public?: boolean
+  liked?: boolean
+  uid?: string
+  status?: string
+  title_version?: string
+  views?: number
+  added_at?: string
+
+  // Relationships
+  album?: {
+    id: string
+    name: string
+    title: string
+  }
+  artists?: {
+    id: string
+    name: string
+    title: string
+  }[]
+  creator?: {
+    id: string
+    name: string
+    title: string
+  }
+  genre?: {
+    id: string
+    name: string
+    title: string
+  }
+  image?: {
+    id: string
+    name: string
+    url: string
+  }
+
+  // Các trường cũ giữ lại để tương thích
+  artist?: string
   audioUrl?: string
   coverArt?: string
   lyrics?: string
   albumId?: string
   artistId?: string
+  uploadDate?: string
+}
+
+export interface CreateSongRequest {
+  album_id: string
+  artist_ids: string[]
+  audio_id: string
+  color: string
+  cover_image_id: string
+  release_date: string
+  title: string
 }
 
 // Update the Album interface to match the new API response format
@@ -146,11 +193,26 @@ export interface PaginatedResponse<T> {
 export interface Artist {
   id: string
   name: string
+  color: string
+  avatar?: {
+    id: string
+    name: string
+    title: string
+    url: string
+  }
+
+  // Các trường cũ giữ lại để tương thích
   image?: string
   genre?: string
   bio?: string
   albumCount?: number
   songCount?: number
+}
+
+export interface CreateArtistRequest {
+  avatar_id: string
+  color: string
+  name: string
 }
 
 export interface AnalyticsData {

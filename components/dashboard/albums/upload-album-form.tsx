@@ -12,6 +12,7 @@ import { ImageIcon, Upload } from "lucide-react"
 import { useAppDispatch } from "@/lib/store/hooks"
 import { createAlbum } from "@/lib/store/albums-slice"
 import type { CreateAlbumRequest } from "@/lib/types"
+import { uploadClient } from "@/lib/api-client"
 
 export function UploadAlbumForm() {
   const dispatch = useAppDispatch()
@@ -101,15 +102,15 @@ export function UploadAlbumForm() {
 
     try {
       // Create album request object with the new format
+      const uploadedFile = await uploadClient.uploadFile(coverFile);
+
       const albumData: CreateAlbumRequest = {
-        title,
-        description,
-        type,
-        color,
-        image_id: coverFile ? coverFile.name : undefined,
-        is_public: true,
-        // Keep alias for backward compatibility
-        alias: alias || generateAlias(title),
+        color: color,
+        cover_image_id: uploadedFile.id,
+        description: description,
+        song_ids: [],
+        title: title,
+        type: type
       }
 
       // Dispatch create album action

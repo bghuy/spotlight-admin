@@ -5,13 +5,19 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/hooks/use-toast"
 import { ImageIcon, Upload } from "lucide-react"
-import { albumClient } from "@/lib/api-client"
+import { albumClient, uploadClient } from "@/lib/api-client"
 
 export function UploadAlbumForm() {
   // Form data
   const [title, setTitle] = useState("")
+  const [alias, setAlias] = useState("")
+  const [description, setDescription] = useState("")
+  const [type, setType] = useState<"album" | "single" | "ep" | "complication">("album")
+  const [color, setColor] = useState("#3b82f6") // Default color - blue
 
   // File uploads
   const [coverFile, setCoverFile] = useState<File | null>(null)
@@ -55,14 +61,33 @@ export function UploadAlbumForm() {
     })
   }
 
+  // Generate alias from title
+  const generateAlias = (title: string) => {
+    return title
+      .toLowerCase()
+      .replace(/[^\w\s]/gi, "")
+      .replace(/\s+/g, "-")
+  }
+
+  // Handle title change and auto-generate alias
+  const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const newTitle = e.target.value
+    setTitle(newTitle)
+
+    // Only auto-generate alias if user hasn't manually edited it
+    // if (!alias || alias === generateAlias(title)) {
+    //   setAlias(generateAlias(newTitle))
+    // }
+  }
+
   // Handle form submission
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
 
-    if (!title) {
+    if (!title || !type) {
       toast({
         title: "Missing information",
-        description: "Please enter an album title.",
+        description: "Please enter an album title and select a type.",
         variant: "destructive",
       })
       return
@@ -71,14 +96,23 @@ export function UploadAlbumForm() {
     setIsLoading(true)
 
     try {
+      const uploadedFile = await uploadClient.uploadFile(coverFile)
+      if(!uploadedFile){
+        throw new Error("Failed to upload cover image")
+      }
+      console.log(uploadedFile, "uploadedFile")
       // Create the album
       const newAlbum = await albumClient.createAlbum({
         title,
-        coverArt: coverUrl || "/placeholder.svg?height=200&width=200",
+        alias,
+        description,
+        type,
+        color,
+        cover_image_id: uploadedFile.id, // In a real app, this would be the ID from your media service
+        coverArt: uploadedFile.url,
         releaseDate: new Date().toISOString(),
+        song_ids: [], // Empty array as no songs are selected yet
       })
-      const albums = await albumClient.getAlbums()
-      console.log(albums,"albums")
 
       toast({
         title: "Album created",
@@ -87,10 +121,14 @@ export function UploadAlbumForm() {
 
       // Reset form
       setTitle("")
+      setAlias("")
+      setDescription("")
+      setType("album")
+      setColor("#3b82f6")
 
       // Clean up URLs
       if (coverUrl) {
-        // URL.revokeObjectURL(coverUrl)
+        URL.revokeObjectURL(coverUrl)
         setCoverUrl(null)
         setCoverFile(null)
       }
@@ -125,13 +163,67 @@ export function UploadAlbumForm() {
           {/* Album Title */}
           <div className="space-y-2">
             <Label htmlFor="title">Album Title *</Label>
+            <Input id="title" value={title} onChange={handleTitleChange} placeholder="Enter album title" required />
+          </div>
+
+          {/* Album Alias */}
+          {/* <div className="space-y-2">
+            <Label htmlFor="alias">Album Alias</Label>
             <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter album title"
-              required
+              id="alias"
+              value={alias}
+              onChange={(e) => setAlias(e.target.value)}
+              placeholder="Enter album alias (URL-friendly name)"
             />
+            <p className="text-xs text-muted-foreground">
+              URL-friendly identifier for the album. Auto-generated from title but can be customized.
+            </p>
+          </div> */}
+
+          {/* Album Type */}
+          <div className="space-y-2">
+            <Label htmlFor="type">Album Type *</Label>
+            <Select value={type} onValueChange={(value: "album" | "single" | "ep" | "complication") => setType(value)}>
+              <SelectTrigger id="type">
+                <SelectValue placeholder="Select album type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="album">Album</SelectItem>
+                <SelectItem value="single">Single</SelectItem>
+                <SelectItem value="ep">EP</SelectItem>
+                <SelectItem value="complication">Compilation</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Album Description */}
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter album description"
+              rows={4}
+            />
+          </div>
+
+          {/* Album Color */}
+          <div className="space-y-2">
+            <Label htmlFor="color">Theme Color</Label>
+            <div className="flex items-center gap-3">
+              <Input
+                id="color"
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className="w-12 h-10 p-1 cursor-pointer"
+              />
+              <span className="text-sm">{color}</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Choose a theme color for the album. This will be used for styling the album page.
+            </p>
           </div>
 
           {/* Cover Image Upload */}
@@ -171,7 +263,7 @@ export function UploadAlbumForm() {
               </div>
 
               {coverUrl && (
-                <div className="h-40 w-40 rounded-md overflow-hidden border">
+                <div className="h-40 w-40 rounded-md overflow-hidden border" style={{ backgroundColor: color }}>
                   <img
                     src={coverUrl || "/placeholder.svg"}
                     alt="Cover preview"

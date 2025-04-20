@@ -1,4 +1,5 @@
-import type { ArtistRequest, Song, User, AnalyticsData, Album, Artist, UserStats, SongStats } from "@/lib/types"
+import axiosInstance from "@/constants/axios-instance"
+import type { ArtistRequest, Song, User, AnalyticsData, Album, Artist, UserStats, SongStats, CreatedFile } from "@/lib/types"
 
 // Simulate API delay
 const simulateDelay = (min = 300, max = 1200) => {
@@ -14,8 +15,8 @@ const mockUsers: (User & { createdAt: string })[] = [
     email: "nguyenvana@example.com",
     role: "admin",
     status: "active",
-    lastActive: "2025-04-01",
-    createdAt: "2025-01-15",
+    lastActive: "2023-04-01",
+    createdAt: "2023-01-15",
   },
   {
     id: "2",
@@ -23,8 +24,8 @@ const mockUsers: (User & { createdAt: string })[] = [
     email: "tranthib@example.com",
     role: "artist",
     status: "active",
-    lastActive: "2025-04-02",
-    createdAt: "2025-02-10",
+    lastActive: "2023-04-02",
+    createdAt: "2023-02-10",
   },
   {
     id: "3",
@@ -32,8 +33,8 @@ const mockUsers: (User & { createdAt: string })[] = [
     email: "levanc@example.com",
     role: "user",
     status: "active",
-    lastActive: "2025-04-03",
-    createdAt: "2025-03-05",
+    lastActive: "2023-04-03",
+    createdAt: "2023-03-05",
   },
   {
     id: "4",
@@ -41,8 +42,8 @@ const mockUsers: (User & { createdAt: string })[] = [
     email: "phamthid@example.com",
     role: "user",
     status: "inactive",
-    lastActive: "2025-03-15",
-    createdAt: "2025-03-20",
+    lastActive: "2023-03-15",
+    createdAt: "2023-03-20",
   },
   {
     id: "5",
@@ -50,8 +51,8 @@ const mockUsers: (User & { createdAt: string })[] = [
     email: "hoangvane@example.com",
     role: "artist",
     status: "active",
-    lastActive: "2025-04-04",
-    createdAt: "2025-04-01",
+    lastActive: "2023-04-04",
+    createdAt: "2023-04-01",
   },
   {
     id: "6",
@@ -59,8 +60,8 @@ const mockUsers: (User & { createdAt: string })[] = [
     email: "ngothif@example.com",
     role: "user",
     status: "active",
-    lastActive: "2025-04-05",
-    createdAt: "2025-04-15",
+    lastActive: "2023-04-05",
+    createdAt: "2023-04-15",
   },
   {
     id: "7",
@@ -68,8 +69,8 @@ const mockUsers: (User & { createdAt: string })[] = [
     email: "dovang@example.com",
     role: "user",
     status: "active",
-    lastActive: "2025-05-01",
-    createdAt: "2025-05-05",
+    lastActive: "2023-05-01",
+    createdAt: "2023-05-05",
   },
   {
     id: "8",
@@ -77,8 +78,8 @@ const mockUsers: (User & { createdAt: string })[] = [
     email: "vuthih@example.com",
     role: "user",
     status: "active",
-    lastActive: "2025-05-10",
-    createdAt: "2025-05-20",
+    lastActive: "2023-05-10",
+    createdAt: "2023-05-20",
   },
   {
     id: "9",
@@ -86,8 +87,8 @@ const mockUsers: (User & { createdAt: string })[] = [
     email: "buivani@example.com",
     role: "artist",
     status: "active",
-    lastActive: "2025-05-01",
-    createdAt: "2025-05-10",
+    lastActive: "2023-06-01",
+    createdAt: "2023-06-10",
   },
   {
     id: "10",
@@ -95,8 +96,8 @@ const mockUsers: (User & { createdAt: string })[] = [
     email: "duongthik@example.com",
     role: "user",
     status: "active",
-    lastActive: "2025-05-15",
-    createdAt: "2025-05-25",
+    lastActive: "2023-06-15",
+    createdAt: "2023-06-25",
   },
   {
     id: "11",
@@ -104,8 +105,8 @@ const mockUsers: (User & { createdAt: string })[] = [
     email: "lyvanl@example.com",
     role: "user",
     status: "active",
-    lastActive: "2025-05-01",
-    createdAt: "2025-05-05",
+    lastActive: "2023-07-01",
+    createdAt: "2023-07-05",
   },
   {
     id: "12",
@@ -113,8 +114,8 @@ const mockUsers: (User & { createdAt: string })[] = [
     email: "trinhthim@example.com",
     role: "user",
     status: "active",
-    lastActive: "2025-05-10",
-    createdAt: "2025-05-20",
+    lastActive: "2023-07-10",
+    createdAt: "2023-07-20",
   },
 ]
 
@@ -233,6 +234,10 @@ const mockAlbums: Album[] = [
     artistName: "Sơn Tùng M-TP",
     releaseDate: "2021-07-05",
     songCount: 5,
+    alias: "chung-ta-cua-hien-tai",
+    description: "Album by Sơn Tùng M-TP",
+    type: "album",
+    color: "bg-gradient-to-r from-blue-500 to-purple-500"
   },
   {
     id: "2",
@@ -242,6 +247,10 @@ const mockAlbums: Album[] = [
     artistName: "Đen Vâu",
     releaseDate: "2022-01-15",
     songCount: 6,
+    alias: "tram-dung-chan",
+    description: "Album by Đen Vâu",
+    type: "album",
+    color: "bg-gradient-to-r from-gray-500 to-black"
   },
   {
     id: "3",
@@ -251,6 +260,10 @@ const mockAlbums: Album[] = [
     artistName: "Hoàng Thùy Linh",
     releaseDate: "2019-10-20",
     songCount: 8,
+    alias: "hoang",
+    description: "Album by Hoàng Thùy Linh",
+    type: "album",
+    color: "bg-gradient-to-r from-yellow-500 to-red-500"
   },
   {
     id: "4",
@@ -260,6 +273,10 @@ const mockAlbums: Album[] = [
     artistName: "Bích Phương",
     releaseDate: "2020-05-10",
     songCount: 7,
+    alias: "hiem-co-kho-tim",
+    description: "Album by Bích Phương",
+    type: "album",
+    color: "bg-gradient-to-r from-pink-500 to-purple-500"
   },
   {
     id: "5",
@@ -269,9 +286,13 @@ const mockAlbums: Album[] = [
     artistName: "Vũ Cát Tường",
     releaseDate: "2019-08-30",
     songCount: 5,
+    alias: "vu-tru-trong-mat-em",
+    description: "Album by Vũ Cát Tường",
+    type: "album",
+    color: "bg-gradient-to-r from-green-500 to-blue-500"
   },
-]
 
+]
 // Mock data for song review requests with audio URLs - using reliable audio samples
 const mockSongs: Song[] = [
   {
@@ -280,7 +301,7 @@ const mockSongs: Song[] = [
     artist: "Nguyễn Văn A",
     genre: "Pop",
     duration: "3:45",
-    uploadDate: "2025-01-15",
+    uploadDate: "2023-01-15",
     status: "approved",
     audioUrl: "https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg",
     coverArt: "/placeholder.svg?height=80&width=80",
@@ -310,7 +331,7 @@ Happiness all around`,
     artist: "Trần Thị B",
     genre: "Rock",
     duration: "4:12",
-    uploadDate: "2025-02-20",
+    uploadDate: "2023-02-20",
     status: "approved",
     audioUrl: "https://actions.google.com/sounds/v1/alarms/assorted_computer_sounds.ogg",
     coverArt: "/placeholder.svg?height=80&width=80",
@@ -340,7 +361,7 @@ Living in the here and now`,
     artist: "Lê Văn C",
     genre: "Hip-hop",
     duration: "3:28",
-    uploadDate: "2025-03-10",
+    uploadDate: "2023-03-10",
     status: "approved",
     audioUrl: "https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg",
     coverArt: "/placeholder.svg?height=80&width=80",
@@ -370,7 +391,7 @@ Finding strength, reaching new heights`,
     artist: "Phạm Thị D",
     genre: "Ambient",
     duration: "5:16",
-    uploadDate: "2025-04-05",
+    uploadDate: "2023-04-05",
     status: "approved",
     audioUrl: "https://actions.google.com/sounds/v1/alarms/dosimeter_alarm.ogg",
     coverArt: "/placeholder.svg?height=80&width=80",
@@ -400,7 +421,7 @@ Perfect moments that won't degrade`,
     artist: "Hoàng Văn E",
     genre: "Folk",
     duration: "4:30",
-    uploadDate: "2025-05-12",
+    uploadDate: "2023-05-12",
     status: "approved",
     audioUrl: "https://actions.google.com/sounds/v1/alarms/beep_short.ogg",
     coverArt: "/placeholder.svg?height=80&width=80",
@@ -417,7 +438,7 @@ Finding peace, worries cease`,
     artist: "Ngô Thị F",
     genre: "Electronic",
     duration: "3:55",
-    uploadDate: "2025-05-18",
+    uploadDate: "2023-06-18",
     status: "approved",
     audioUrl: "https://actions.google.com/sounds/v1/alarms/beep_short_pleasant.ogg",
     coverArt: "/placeholder.svg?height=80&width=80",
@@ -434,7 +455,7 @@ Finding my way through the haze`,
     artist: "Đỗ Văn G",
     genre: "World",
     duration: "4:45",
-    uploadDate: "2025-05-19",
+    uploadDate: "2023-07-22",
     status: "approved",
     audioUrl: "https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg",
     coverArt: "/placeholder.svg?height=80&width=80",
@@ -451,7 +472,7 @@ Finding strength in the mysteries`,
     artist: "Vũ Thị H",
     genre: "Jazz",
     duration: "5:10",
-    uploadDate: "2025-04-30",
+    uploadDate: "2023-07-30",
     status: "pending",
     audioUrl: "https://actions.google.com/sounds/v1/alarms/carbon_monoxide_detector.ogg",
     coverArt: "/placeholder.svg?height=80&width=80",
@@ -764,8 +785,19 @@ export const albumService = {
     return results
   },
 
+  // Cập nhật phương thức createAlbum để hỗ trợ các trường mới
   createAlbum: async (album: Omit<Album, "id">): Promise<Album> => {
-    await simulateDelay()
+    const creaatedAlbum = await axiosInstance.post("/api/v1/albums/admin", {
+      alias: "",
+      color: album.color,
+      title: album.title,
+      description: album.description,
+      song_ids: [],
+      cover_image_id: album.cover_image_id,
+      type: album.type,
+    })
+    console.log("createAlbum", creaatedAlbum)
+    // await simulateDelay()
     const newAlbum: Album = {
       id: `album-${Date.now()}`,
       ...album,
@@ -814,4 +846,25 @@ export const artistService = {
     await simulateDelay(200, 500)
     return mockArtists.length
   },
+}
+
+export const uploadService = {
+  uploadFile: async (file: File | null): Promise<CreatedFile> => {
+    if (!file) {
+      throw new Error("File is required");
+    }
+
+    console.log("Uploading file:", file);
+
+    const formData = new FormData();
+    formData.append("file", file); // key "file" phải trùng với tên mà backend mong đợi
+
+    const response = await axiosInstance.post("/media/api/v1/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return response.data;
+  }
 }

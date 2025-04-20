@@ -33,14 +33,21 @@ export interface Song {
   artistId?: string
 }
 
+// Cập nhật interface Album với các thuộc tính mới
 export interface Album {
   id: string
   title: string
+  alias: string
+  description: string
+  type: "album" | "single" | "ep" | "complication"
+  color: string
+  cover_image_id?: string
   coverArt?: string
   artistId?: string
   artistName?: string
   releaseDate: string
   songCount?: number
+  song_ids?: string[]
 }
 
 export interface Artist {
@@ -51,6 +58,12 @@ export interface Artist {
   bio?: string
   albumCount?: number
   songCount?: number
+}
+
+export interface CreatedFile {
+  id: string,
+  name: string,
+  url: string
 }
 
 export interface AnalyticsData {

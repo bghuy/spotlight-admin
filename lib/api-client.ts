@@ -7,6 +7,7 @@ import {
   analyticsService,
   albumService,
   artistService,
+  uploadService,
 } from "@/lib/api-service"
 import { saveGeneralSettings, saveNotificationSettings, saveSecuritySettings, saveApiSettings } from "@/lib/actions"
 
@@ -55,4 +56,8 @@ export const artistClient = {
   getArtistById: artistService.getArtistById,
   searchArtists: artistService.searchArtists,
   createArtist: artistService.createArtist,
+}
+
+export const uploadClient = {
+  uploadFile:  uploadService.uploadFile
 }

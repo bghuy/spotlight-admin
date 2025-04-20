@@ -1,5 +1,18 @@
 import axiosInstance from "@/constants/axios-instance"
-import type { ArtistRequest, Song, User, AnalyticsData, Album, Artist, UserStats, SongStats, CreatedFile } from "@/lib/types"
+import type {
+  ArtistRequest,
+  Song,
+  User,
+  AnalyticsData,
+  Album,
+  Artist,
+  UserStats,
+  SongStats,
+  PaginatedResponse,
+  CreateAlbumRequest,
+  UpdateAlbumRequest,
+  CreatedFile,
+} from "@/lib/types"
 
 // Simulate API delay
 const simulateDelay = (min = 300, max = 1200) => {
@@ -224,75 +237,280 @@ const mockArtists: (Artist & { createdAt: string })[] = [
   },
 ]
 
-// Mock data for albums
+// Updated mock data for albums to match the new API response format
 const mockAlbums: Album[] = [
   {
     id: "1",
     title: "Chúng Ta Của Hiện Tại",
+    title_version: "Original",
+    description: "Album mới nhất của Sơn Tùng M-TP",
+    type: "album",
+    color: "#3b82f6",
+    image: {
+      id: "cover-1",
+      name: "chung-ta-cua-hien-tai.jpg",
+      url: "/placeholder.svg?height=200&width=200",
+    },
+    artists: [
+      {
+        id: "1",
+        name: "Sơn Tùng M-TP",
+        title: "Ca sĩ",
+      },
+    ],
+    categories: [
+      {
+        id: "pop",
+        name: "Pop",
+        items: [
+          {
+            id: "song-1",
+            name: "Chúng Ta Của Hiện Tại",
+            title: "Chúng Ta Của Hiện Tại",
+            type: "song",
+            image: {
+              id: "song-cover-1",
+              name: "chung-ta-cua-hien-tai-song.jpg",
+              url: "/placeholder.svg?height=80&width=80",
+            },
+            song: {
+              id: "song-file-1",
+              name: "chung-ta-cua-hien-tai.mp3",
+              url: "https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg",
+            },
+          },
+        ],
+      },
+    ],
+    in_library: true,
+    is_owned: true,
+    is_public: true,
+    // Keep for backward compatibility
+    alias: "chung-ta-cua-hien-tai",
     coverArt: "/placeholder.svg?height=200&width=200",
     artistId: "1",
     artistName: "Sơn Tùng M-TP",
     releaseDate: "2021-07-05",
     songCount: 5,
-    alias: "chung-ta-cua-hien-tai",
-    description: "Album by Sơn Tùng M-TP",
-    type: "album",
-    color: "bg-gradient-to-r from-blue-500 to-purple-500"
   },
   {
     id: "2",
     title: "Trạm Dừng Chân",
+    title_version: "Original",
+    description: "Album của Đen Vâu",
+    type: "album",
+    color: "#4f46e5",
+    image: {
+      id: "cover-2",
+      name: "tram-dung-chan.jpg",
+      url: "/placeholder.svg?height=200&width=200",
+    },
+    artists: [
+      {
+        id: "2",
+        name: "Đen Vâu",
+        title: "Rapper",
+      },
+    ],
+    categories: [
+      {
+        id: "hiphop",
+        name: "Hip Hop",
+        items: [
+          {
+            id: "song-2",
+            name: "Trạm Dừng Chân",
+            title: "Trạm Dừng Chân",
+            type: "song",
+            image: {
+              id: "song-cover-2",
+              name: "tram-dung-chan-song.jpg",
+              url: "/placeholder.svg?height=80&width=80",
+            },
+            song: {
+              id: "song-file-2",
+              name: "tram-dung-chan.mp3",
+              url: "https://actions.google.com/sounds/v1/alarms/assorted_computer_sounds.ogg",
+            },
+          },
+        ],
+      },
+    ],
+    in_library: true,
+    is_owned: true,
+    is_public: true,
+    // Keep for backward compatibility
+    alias: "tram-dung-chan",
     coverArt: "/placeholder.svg?height=200&width=200",
     artistId: "2",
     artistName: "Đen Vâu",
     releaseDate: "2022-01-15",
     songCount: 6,
-    alias: "tram-dung-chan",
-    description: "Album by Đen Vâu",
-    type: "album",
-    color: "bg-gradient-to-r from-gray-500 to-black"
   },
   {
     id: "3",
     title: "Hoàng",
+    title_version: "Deluxe Edition",
+    description: "Album của Hoàng Thùy Linh",
+    type: "album",
+    color: "#ec4899",
+    image: {
+      id: "cover-3",
+      name: "hoang.jpg",
+      url: "/placeholder.svg?height=200&width=200",
+    },
+    artists: [
+      {
+        id: "3",
+        name: "Hoàng Thùy Linh",
+        title: "Ca sĩ",
+      },
+    ],
+    categories: [
+      {
+        id: "pop",
+        name: "Pop",
+        items: [
+          {
+            id: "song-3",
+            name: "Hoàng",
+            title: "Hoàng",
+            type: "song",
+            image: {
+              id: "song-cover-3",
+              name: "hoang-song.jpg",
+              url: "/placeholder.svg?height=80&width=80",
+            },
+            song: {
+              id: "song-file-3",
+              name: "hoang.mp3",
+              url: "https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg",
+            },
+          },
+        ],
+      },
+    ],
+    in_library: true,
+    is_owned: true,
+    is_public: true,
+    // Keep for backward compatibility
+    alias: "hoang",
     coverArt: "/placeholder.svg?height=200&width=200",
     artistId: "3",
     artistName: "Hoàng Thùy Linh",
     releaseDate: "2019-10-20",
     songCount: 8,
-    alias: "hoang",
-    description: "Album by Hoàng Thùy Linh",
-    type: "album",
-    color: "bg-gradient-to-r from-yellow-500 to-red-500"
   },
   {
     id: "4",
     title: "Hiếm Có Khó Tìm",
+    title_version: "Original",
+    description: "Album của Bích Phương",
+    type: "album",
+    color: "#f97316",
+    image: {
+      id: "cover-4",
+      name: "hiem-co-kho-tim.jpg",
+      url: "/placeholder.svg?height=200&width=200",
+    },
+    artists: [
+      {
+        id: "4",
+        name: "Bích Phương",
+        title: "Ca sĩ",
+      },
+    ],
+    categories: [
+      {
+        id: "pop",
+        name: "Pop",
+        items: [
+          {
+            id: "song-4",
+            name: "Hiếm Có Khó Tìm",
+            title: "Hiếm Có Khó Tìm",
+            type: "song",
+            image: {
+              id: "song-cover-4",
+              name: "hiem-co-kho-tim-song.jpg",
+              url: "/placeholder.svg?height=80&width=80",
+            },
+            song: {
+              id: "song-file-4",
+              name: "hiem-co-kho-tim.mp3",
+              url: "https://actions.google.com/sounds/v1/alarms/dosimeter_alarm.ogg",
+            },
+          },
+        ],
+      },
+    ],
+    in_library: true,
+    is_owned: true,
+    is_public: true,
+    // Keep for backward compatibility
+    alias: "hiem-co-kho-tim",
     coverArt: "/placeholder.svg?height=200&width=200",
     artistId: "4",
     artistName: "Bích Phương",
     releaseDate: "2020-05-10",
     songCount: 7,
-    alias: "hiem-co-kho-tim",
-    description: "Album by Bích Phương",
-    type: "album",
-    color: "bg-gradient-to-r from-pink-500 to-purple-500"
   },
   {
     id: "5",
     title: "Vũ Trụ Trong Mắt Em",
+    title_version: "Original",
+    description: "Album của Vũ Cát Tường",
+    type: "album",
+    color: "#10b981",
+    image: {
+      id: "cover-5",
+      name: "vu-tru-trong-mat-em.jpg",
+      url: "/placeholder.svg?height=200&width=200",
+    },
+    artists: [
+      {
+        id: "5",
+        name: "Vũ Cát Tường",
+        title: "Ca sĩ",
+      },
+    ],
+    categories: [
+      {
+        id: "pop",
+        name: "Pop",
+        items: [
+          {
+            id: "song-5",
+            name: "Vũ Trụ Trong Mắt Em",
+            title: "Vũ Trụ Trong Mắt Em",
+            type: "song",
+            image: {
+              id: "song-cover-5",
+              name: "vu-tru-trong-mat-em-song.jpg",
+              url: "/placeholder.svg?height=80&width=80",
+            },
+            song: {
+              id: "song-file-5",
+              name: "vu-tru-trong-mat-em.mp3",
+              url: "https://actions.google.com/sounds/v1/alarms/beep_short.ogg",
+            },
+          },
+        ],
+      },
+    ],
+    in_library: true,
+    is_owned: true,
+    is_public: true,
+    // Keep for backward compatibility
+    alias: "vu-tru-trong-mat-em",
     coverArt: "/placeholder.svg?height=200&width=200",
     artistId: "5",
     artistName: "Vũ Cát Tường",
     releaseDate: "2019-08-30",
     songCount: 5,
-    alias: "vu-tru-trong-mat-em",
-    description: "Album by Vũ Cát Tường",
-    type: "album",
-    color: "bg-gradient-to-r from-green-500 to-blue-500"
   },
-
 ]
+
 // Mock data for song review requests with audio URLs - using reliable audio samples
 const mockSongs: Song[] = [
   {
@@ -758,11 +976,20 @@ export const analyticsService = {
   },
 }
 
-// API service for albums
+// Updated API service for albums to match the new API response format
 export const albumService = {
-  getAlbums: async (): Promise<Album[]> => {
+  getAlbums: async (): Promise<PaginatedResponse<Album>> => {
     await simulateDelay()
-    return [...mockAlbums]
+    return {
+      items: [...mockAlbums],
+      meta: {
+        count: mockAlbums.length,
+        current_page: 1,
+        per_page: 10,
+        total: mockAlbums.length,
+        total_pages: 1,
+      },
+    }
   },
 
   getAlbumById: async (id: string): Promise<Album | undefined> => {
@@ -770,40 +997,119 @@ export const albumService = {
     return mockAlbums.find((album) => album.id === id)
   },
 
+  // Update the searchAlbums method to return an array of albums
   searchAlbums: async (query: string): Promise<Album[]> => {
     await simulateDelay()
-    if (!query) return [...mockAlbums]
+    if (!query) {
+      // Return just the items array from the full response
+      const response = await albumService.getAlbums()
+      return response.items
+    }
 
     const lowerQuery = query.toLowerCase()
     const results = mockAlbums.filter(
       (album) =>
         album.title.toLowerCase().includes(lowerQuery) ||
-        (album.artistName && album.artistName.toLowerCase().includes(lowerQuery)),
+        (album.creator?.name && album.creator.name.toLowerCase().includes(lowerQuery)),
     )
 
     console.log(`Searching albums with query "${query}":`, results)
     return results
   },
 
-  // Cập nhật phương thức createAlbum để hỗ trợ các trường mới
-  createAlbum: async (album: Omit<Album, "id">): Promise<Album> => {
-    const creaatedAlbum = await axiosInstance.post("/api/v1/albums/admin", {
-      alias: "",
-      color: album.color,
-      title: album.title,
-      description: album.description,
-      song_ids: [],
-      cover_image_id: album.cover_image_id,
-      type: album.type,
-    })
-    console.log("createAlbum", creaatedAlbum)
-    // await simulateDelay()
+  // Updated createAlbum method to match the new API request format
+  createAlbum: async (albumData: CreateAlbumRequest): Promise<Album> => {
+    await simulateDelay()
     const newAlbum: Album = {
       id: `album-${Date.now()}`,
-      ...album,
+      title: albumData.title,
+      title_version: albumData.title_version || "",
+      description: albumData.description,
+      type: albumData.type,
+      color: albumData.color,
+      image: albumData.image_id
+        ? {
+            id: albumData.image_id,
+            name: `album-image-${Date.now()}.jpg`,
+            url: "/placeholder.svg?height=200&width=200",
+          }
+        : undefined,
+      artists: albumData.artist_ids
+        ? albumData.artist_ids.map((id) => {
+            const artist = mockArtists.find((a) => a.id === id)
+            return {
+              id,
+              name: artist?.name || "Unknown Artist",
+              title: "Artist",
+            }
+          })
+        : [],
+      categories: [],
+      in_library: true,
+      is_owned: true,
+      is_public: albumData.is_public || true,
+
+      // For backward compatibility
+      alias: albumData.alias,
+      coverArt: "/placeholder.svg?height=200&width=200",
+      releaseDate: new Date().toISOString(),
+      songCount: albumData.song_ids?.length || 0,
+      song_ids: albumData.song_ids,
     }
     mockAlbums.push(newAlbum)
     return newAlbum
+  },
+
+  // Update the updateAlbum method to match the new API response format
+  updateAlbum: async (id: string, albumData: UpdateAlbumRequest): Promise<Album> => {
+    await simulateDelay()
+    const albumIndex = mockAlbums.findIndex((album) => album.id === id)
+    if (albumIndex === -1) throw new Error("Album not found")
+
+    const currentAlbum = mockAlbums[albumIndex]
+
+    const updatedAlbum: Album = {
+      ...currentAlbum,
+      title: albumData.title || currentAlbum.title,
+      title_version: albumData.title_version || currentAlbum.title_version,
+      description: albumData.description || currentAlbum.description,
+      type: albumData.type || currentAlbum.type,
+      color: albumData.color || currentAlbum.color,
+      image: albumData.image_id
+        ? {
+            id: albumData.image_id,
+            name: `album-image-${Date.now()}.jpg`,
+            url: "/placeholder.svg?height=200&width=200",
+          }
+        : currentAlbum.image,
+      artists: albumData.artist_ids
+        ? albumData.artist_ids.map((id) => {
+            const artist = mockArtists.find((a) => a.id === id)
+            return {
+              id,
+              name: artist?.name || "Unknown Artist",
+              title: "Artist",
+            }
+          })
+        : currentAlbum.artists,
+      is_public: albumData.is_public !== undefined ? albumData.is_public : currentAlbum.is_public,
+
+      // For backward compatibility
+      alias: albumData.alias || currentAlbum.alias,
+      coverArt: "/placeholder.svg?height=200&width=200",
+    }
+
+    mockAlbums[albumIndex] = updatedAlbum
+    return updatedAlbum
+  },
+
+  // Added deleteAlbum method
+  deleteAlbum: async (id: string): Promise<void> => {
+    await simulateDelay()
+    const albumIndex = mockAlbums.findIndex((album) => album.id === id)
+    if (albumIndex === -1) throw new Error("Album not found")
+
+    mockAlbums.splice(albumIndex, 1)
   },
 }
 
@@ -847,6 +1153,10 @@ export const artistService = {
     return mockArtists.length
   },
 }
+
+
+
+
 
 export const uploadService = {
   uploadFile: async (file: File | null): Promise<CreatedFile> => {

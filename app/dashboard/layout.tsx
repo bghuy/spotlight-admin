@@ -13,6 +13,10 @@ import axiosInstance from "@/constants/axios-instance";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store/store";
 import { Toaster } from "@/components/ui/toaster";
+import { fetchUsers } from "@/lib/store/users-slice";
+import { fetchArtists } from "@/lib/store/artists-slice";
+import { fetchAlbums } from "@/lib/store/albums-slice";
+import { fetchSongs } from "@/lib/store/songs-slice";
 
 // Sử dụng dynamic import để tránh lỗi hydration
 const MusicPlayer = dynamic(() => import("@/components/music-player").then((mod) => mod.MusicPlayer), {
@@ -35,6 +39,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
 
   }
+  useEffect(() => {
+    // Fetch all data when dashboard loads
+    dispatch(fetchUsers())
+    dispatch(fetchArtists())
+    dispatch(fetchAlbums())
+    dispatch(fetchSongs())
+  }, [dispatch])
+
   // Đảm bảo chỉ render ở phía client
   useEffect(() => {
     setIsClient(true);
@@ -59,32 +71,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       controller.abort(); // 🧼 cleanup: huỷ request nếu unmount
     };
   },[])
-
-  // Lấy claims khi đã xác thực
-  // useEffect(() => {
-  //   async function fetchClaims() {
-  //     // console.log("Checking auth state - isLoading:", isLoading, "isAuthenticated:", isAuthenticated, "user:", user);
-  //     if (!isLoading && isAuthenticated) {
-  //       try {
-  //         const claims = await getIdTokenClaims();
-  //         // console.log("Claims:", claims);
-  //         if (claims) {
-  //           dispatch(setUser(claims)); // Lưu claims vào Redux
-  //         } else {
-  //           console.error("No claims received");
-  //         }
-  //       } catch (error) {
-  //         console.error("Error fetching claims:", error);
-  //         router.push("/login?error=failed_to_fetch_claims");
-  //       }
-  //     } else if (!isLoading && !isAuthenticated) {
-  //       console.log("Not authenticated, redirecting to login");
-  //       router.push("/login");
-  //     }
-  //   }
-
-  //   fetchClaims();
-  // }, [isLoading, isAuthenticated, getIdTokenClaims, user, dispatch, router]);
 
   if (!isClient || isLoading) {
     return (
